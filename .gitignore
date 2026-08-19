@@ -1,0 +1,32 @@
+# Dependencies
+/vendor/
+
+# Environment configurations
+.env
+.env.backup
+.env.production
+
+# Storage and Logs
+/storage/logs/*.log
+/storage/cache/*
+!/storage/logs/.gitkeep
+!/storage/cache/.gitkeep
+
+# Uploads and temporary files
+/public/uploads/materials/*
+/public/uploads/submissions/*
+/public/uploads/certificates/*
+/public/uploads/avatars/*
+!/public/uploads/materials/.gitkeep
+!/public/uploads/submissions/.gitkeep
+!/public/uploads/certificates/.gitkeep
+!/public/uploads/avatars/.gitkeep
+!/public/uploads/.htaccess
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
