@@ -127,13 +127,14 @@ class Router
         }
 
         $handler = $matchedRoute['handler'];
+        $positionalParams = array_values($params);
 
         if (is_callable($handler)) {
-            $result = call_user_func_array($handler, array_merge([$request], $params));
+            $result = call_user_func_array($handler, array_merge([$request], $positionalParams));
         } elseif (is_array($handler) && count($handler) === 2) {
             [$controllerClass, $action] = $handler;
             $controller = new $controllerClass();
-            $result = call_user_func_array([$controller, $action], array_merge([$request], $params));
+            $result = call_user_func_array([$controller, $action], array_merge([$request], $positionalParams));
         } else {
             throw new \RuntimeException('Handler de rota inválido.');
         }

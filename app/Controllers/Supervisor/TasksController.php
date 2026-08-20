@@ -19,9 +19,10 @@ class TasksController extends Controller
 {
     public function index(Request $request): Response
     {
+        $user = Session::get('user');
         $tasks = Task::all();
         $categories = TaskCategory::all();
-        $interns = Intern::all();
+        $interns = Intern::all((int)$user['id']);
 
         return $this->render('supervisor.tasks.index', [
             'title' => 'Gestão e Atribuição de Tarefas - Asoftmedia',
@@ -72,7 +73,6 @@ class TasksController extends Controller
 
         $errors = $this->validate($data, [
             'task_id' => 'required|numeric',
-            'intern_id' => 'required|numeric',
             'start_date' => 'required',
             'due_date' => 'required'
         ]);
@@ -82,20 +82,43 @@ class TasksController extends Controller
             return $this->redirect('/supervisor/tasks');
         }
 
-        $assignId = TaskAssignment::assign(
-            (int)$data['task_id'],
-            (int)$data['intern_id'],
-            (int)$user['id'],
-            $data['start_date'],
-            $data['due_date']
-        );
+        $taskId = (int)$data['task_id'];
+        $assignType = $data['assign_type'] ?? 'single';
+        $startDate = $data['start_date'];
+        $dueDate = $data['due_date'];
 
-        AuditLog::log('task_assign', 'tasks', $assignId, null, [
-            'task_id' => $data['task_id'],
-            'intern_id' => $data['intern_id']
-        ], 'success');
+        if ($assignType === 'all') {
+            // Bulk assign to all supervised interns
+            $supervisedInterns = Intern::all((int)$user['id']);
+            $internIds = array_column($supervisedInterns, 'id');
 
-        Session::flash('success', 'Tarefa atribuída ao estagiário com sucesso!');
+            $assignedCount = TaskAssignment::assignBulk($taskId, $internIds, (int)$user['id'], $startDate, $dueDate);
+
+            AuditLog::log('task_bulk_assign', 'tasks', $taskId, null, [
+                'assigned_count' => $assignedCount,
+                'total_supervised' => count($internIds)
+            ], 'success');
+
+            Session::flash('success', "Tarefa atribuída com sucesso a {$assignedCount} estagiários (sem duplicar tarefas já existentes).");
+        } else {
+            $internId = (int)($data['intern_id'] ?? 0);
+            if ($internId <= 0) {
+                Session::flash('error', 'Selecione um estagiário válido para atribuir a tarefa.');
+                return $this->redirect('/supervisor/tasks');
+            }
+
+            $assignId = TaskAssignment::assign($taskId, $internId, (int)$user['id'], $startDate, $dueDate);
+            if ($assignId === null) {
+                Session::flash('warning', 'Este estagiário já possui esta tarefa atribuída anteriormente.');
+            } else {
+                AuditLog::log('task_assign', 'tasks', $assignId, null, [
+                    'task_id' => $taskId,
+                    'intern_id' => $internId
+                ], 'success');
+                Session::flash('success', 'Tarefa atribuída ao estagiário com sucesso!');
+            }
+        }
+
         return $this->redirect('/supervisor/tasks');
     }
 
@@ -120,7 +143,7 @@ class TasksController extends Controller
         $user = Session::get('user');
 
         $status = $data['status'] ?? 'approved';
-        $score = (float)($data['score'] ?? 100.0);
+        $score = isset($data['score']) ? (float)$data['score'] : 100.0;
         $feedback = trim((string)($data['supervisor_feedback'] ?? ''));
 
         TaskAssignment::evaluate($assignmentId, (int)$user['id'], $status, $score, $feedback);
@@ -137,7 +160,7 @@ class TasksController extends Controller
             'score' => $score
         ], 'success');
 
-        Session::flash('success', 'Avaliação da tarefa gravada com sucesso!');
+        Session::flash('success', 'Parecer técnico gravado com sucesso!');
         return $this->redirect('/supervisor/dashboard');
     }
 

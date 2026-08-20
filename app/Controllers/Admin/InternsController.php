@@ -24,13 +24,24 @@ class InternsController extends Controller
 {
     public function index(Request $request): Response
     {
-        $interns = Intern::all();
+        $page = (int)$request->input('page', 1);
+        $search = trim((string)$request->input('search', ''));
+        $status = trim((string)$request->input('status', ''));
+        $sortBy = trim((string)$request->input('sort', 'created_at'));
+        $sortDir = trim((string)$request->input('dir', 'DESC'));
+
+        $paginated = Intern::paginate($page, 10, $search, $status, $sortBy, $sortDir);
         $institutions = Institution::all();
 
         return $this->render('admin.interns.index', [
             'title' => 'Gestão de Estagiários - Asoftmedia',
-            'interns' => $interns,
-            'institutions' => $institutions
+            'interns' => $paginated['data'],
+            'pagination' => $paginated,
+            'institutions' => $institutions,
+            'search' => $search,
+            'status' => $status,
+            'sortBy' => $sortBy,
+            'sortDir' => $sortDir
         ], 'admin');
     }
 
@@ -46,11 +57,30 @@ class InternsController extends Controller
             WHERE r.name IN ('supervisor', 'admin', 'super_admin') AND u.deleted_at IS NULL
         ")->fetchAll();
 
+        // Default initial calculation for today
+        $defaultStartDate = date('Y-m-d');
+        $defaultEndDate = Intern::calculateEndDate($defaultStartDate);
+
         return $this->render('admin.interns.create', [
             'title' => 'Cadastrar Novo Estagiário - Asoftmedia',
             'institutions' => $institutions,
-            'supervisors' => $supervisors
+            'supervisors' => $supervisors,
+            'defaultStartDate' => $defaultStartDate,
+            'defaultEndDate' => $defaultEndDate
         ], 'admin');
+    }
+
+    public function calculateEndDateApi(Request $request): Response
+    {
+        $startDate = $request->input('start_date', date('Y-m-d'));
+        $calculatedEnd = Intern::calculateEndDate($startDate);
+        return (new Response())->json([
+            'success' => true,
+            'start_date' => $startDate,
+            'end_date' => $calculatedEnd,
+            'formatted_end' => date('d/m/Y', strtotime($calculatedEnd)),
+            'day_of_week' => 'Sexta-feira'
+        ]);
     }
 
     public function store(Request $request): Response
@@ -63,14 +93,16 @@ class InternsController extends Controller
             'bi_number' => 'required',
             'institution_id' => 'required|numeric',
             'course' => 'required',
-            'start_date' => 'required',
-            'end_date' => 'required'
+            'start_date' => 'required'
         ]);
 
         if (!empty($errors)) {
             Session::flash('error', implode(' ', $errors));
             return $this->redirect('/admin/interns/create');
         }
+
+        // Automatic end date calculation on backend (+3 months adjusted to next Friday)
+        $data['end_date'] = Intern::calculateEndDate($data['start_date']);
 
         $pdo = Database::getConnection();
 
@@ -82,8 +114,8 @@ class InternsController extends Controller
             $pdo->beginTransaction();
 
             $stmtUser = $pdo->prepare("
-                INSERT INTO users (name, email, phone, username, password_hash, status)
-                VALUES (?, ?, ?, ?, ?, 'active')
+                INSERT INTO users (name, email, phone, username, password_hash, must_change_password, status)
+                VALUES (?, ?, ?, ?, ?, 1, 'active')
             ");
             $stmtUser->execute([
                 $data['full_name'],
@@ -111,9 +143,14 @@ class InternsController extends Controller
 
             $pdo->commit();
 
-            AuditLog::log('intern_create', 'interns', $internId, null, ['code' => $code, 'name' => $data['full_name']], 'success');
+            AuditLog::log('intern_create', 'interns', $internId, null, [
+                'code' => $code,
+                'name' => $data['full_name'],
+                'start_date' => $data['start_date'],
+                'end_date' => $data['end_date']
+            ], 'success');
 
-            Session::flash('success', "Estagiário cadastrado com sucesso! Código: {$code}. Utilizador: {$username}, Palavra-passe provisória: Password123!");
+            Session::flash('success', "Estagiário cadastrado com sucesso! Código: {$code}. Conclusão Prevista: " . date('d/m/Y', strtotime($data['end_date'])) . " (Sexta-feira). Utilizador: {$username}, Palavra-passe: Password123!");
             return $this->redirect('/admin/interns');
         } catch (\Throwable $e) {
             $pdo->rollBack();

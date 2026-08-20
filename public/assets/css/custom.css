@@ -23,11 +23,29 @@ body {
 }
 
 .sidebar {
-    width: 260px;
+    width: 270px;
     background-color: var(--asoft-sidebar-bg);
     color: var(--asoft-sidebar-text);
     flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
     transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
 }
 
 .sidebar .brand {
@@ -43,14 +61,15 @@ body {
 
 .sidebar .nav-link {
     color: var(--asoft-sidebar-text);
-    padding: 0.75rem 1.5rem;
+    padding: 0.65rem 1.5rem;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 500;
     border-left: 3px solid transparent;
     transition: all 0.2s;
+    text-decoration: none;
 }
 
 .sidebar .nav-link:hover,
@@ -61,10 +80,10 @@ body {
 }
 
 .sidebar .nav-heading {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 1rem 1.5rem 0.5rem 1.5rem;
+    letter-spacing: 0.06em;
+    padding: 1rem 1.5rem 0.35rem 1.5rem;
     color: #64748b;
     font-weight: 700;
 }
@@ -73,13 +92,17 @@ body {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    overflow-x: hidden;
+    min-width: 0;
+    min-height: 100vh;
 }
 
 .top-navbar {
     background-color: #ffffff;
     border-bottom: 1px solid #e2e8f0;
     padding: 0.75rem 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 900;
 }
 
 .content-wrapper {
@@ -183,6 +206,44 @@ body {
     margin-bottom: 0.5rem;
 }
 
+/* Notifications Bell */
+.notification-bell {
+    position: relative;
+    cursor: pointer;
+    font-size: 1.25rem;
+    color: #64748b;
+    transition: color 0.2s;
+}
+.notification-bell:hover {
+    color: var(--asoft-primary);
+}
+.notification-badge {
+    position: absolute;
+    top: -4px;
+    right: -6px;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 50rem;
+}
+
+/* Back button */
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* Sortable table header */
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+th.sortable:hover {
+    background-color: #e2e8f0;
+}
+
 /* Responsive adjustments */
 @media (max-width: 991.98px) {
     .app-container {
@@ -190,5 +251,7 @@ body {
     }
     .sidebar {
         width: 100%;
+        height: auto;
+        position: relative;
     }
 }

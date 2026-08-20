@@ -42,18 +42,37 @@
                     <i class="bi bi-patch-check-fill text-info"></i> Certificado & QR Code
                 </a>
             </nav>
+
+            <div class="nav-heading mt-3">Conta & Privacidade</div>
+            <nav class="nav flex-column">
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/profile') && !str_contains($_SERVER['REQUEST_URI'] ?? '', 'privacy') ? 'active' : '' ?>" href="/profile">
+                    <i class="bi bi-person-circle"></i> Meu Perfil
+                </a>
+                <a class="nav-link <?= str_contains($_SERVER['REQUEST_URI'] ?? '', '/profile/privacy') ? 'active' : '' ?>" href="/profile/privacy">
+                    <i class="bi bi-shield-check text-info"></i> Privacidade (Lei 22/11)
+                </a>
+            </nav>
         </aside>
 
         <!-- Main Content -->
         <div class="main-content">
             <header class="top-navbar d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 text-dark font-weight-bold"><?= \App\Helpers\e($title ?? 'Portal de Aprendizagem') ?></h5>
+                <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="history.back()" title="Voltar para a página anterior">
+                        <i class="bi bi-arrow-left me-1"></i> Voltar
+                    </button>
+                    <h5 class="mb-0 text-dark font-weight-bold"><?= \App\Helpers\e($title ?? 'Portal de Aprendizagem') ?></h5>
+                </div>
                 
                 <div class="d-flex align-items-center gap-3">
                     <?php $user = \App\Helpers\auth_user(); ?>
-                    <span class="badge bg-success px-3 py-2">
-                        <i class="bi bi-person-fill me-1"></i> <?= \App\Helpers\e($user['name'] ?? 'Estagiário') ?>
-                    </span>
+                    
+                    <a href="/profile" class="text-decoration-none d-flex align-items-center gap-2 text-dark">
+                        <span class="badge bg-success px-3 py-2">
+                            <i class="bi bi-person-fill me-1"></i> <?= \App\Helpers\e($user['name'] ?? 'Estagiário') ?>
+                        </span>
+                    </a>
+
                     <form action="/logout" method="POST" class="d-inline mb-0">
                         <?= \App\Helpers\csrf_field() ?>
                         <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -91,7 +110,7 @@
             </main>
 
             <footer class="bg-white border-top py-3 px-4 text-center text-muted small">
-                &copy; 2026 Asoftmedia - Plataforma de Formação e Estágios.
+                &copy; 2026 Asoftmedia - Plataforma de Formação e Estágios • <a href="/politica-privacidade" target="_blank" class="text-decoration-none">Privacidade (Lei 22/11)</a>
             </footer>
         </div>
     </div>

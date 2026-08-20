@@ -52,44 +52,167 @@ class TaskAssignment
         if ($res) {
             $res['submissions'] = self::getSubmissions((int)$res['id']);
             $res['comments'] = self::getComments((int)$res['id']);
+            $res['history'] = self::getHistory((int)$res['id']);
         }
         return $res ?: null;
     }
 
-    public static function assign(int $taskId, int $internId, int $assignedBy, string $startDate, string $dueDate): int
+    public static function assign(int $taskId, int $internId, int $assignedBy, string $startDate, string $dueDate): ?int
     {
         $pdo = Database::getConnection();
+
+        // Check for existing assignment to avoid duplicates
+        $stmtCheck = $pdo->prepare("SELECT id FROM task_assignments WHERE task_id = ? AND intern_id = ?");
+        $stmtCheck->execute([$taskId, $internId]);
+        if ($stmtCheck->fetchColumn()) {
+            return null; // Already assigned
+        }
+
         $stmt = $pdo->prepare("
             INSERT INTO task_assignments (task_id, intern_id, assigned_by, start_date, due_date, status)
             VALUES (?, ?, ?, ?, ?, 'assigned')
         ");
         $stmt->execute([$taskId, $internId, $assignedBy, $startDate, $dueDate]);
-        return (int)$pdo->lastInsertId();
+        $assignId = (int)$pdo->lastInsertId();
+
+        // Record History
+        self::recordHistory($assignId, $assignedBy, 'assigned', null, 'assigned', null, 'Tarefa atribuída ao estagiário');
+
+        // Immediate Notification for Intern
+        $intern = Intern::findById($internId);
+        $task = Task::findById($taskId);
+        if ($intern && $task) {
+            Notification::create(
+                (int)$intern['user_id'],
+                'task',
+                'Nova Tarefa Atribuída: ' . $task['title'],
+                "Foi atribuída a você a tarefa '{$task['title']}' com prazo de entrega até " . date('d/m/Y', strtotime($dueDate)) . ".",
+                "/intern/tasks/{$assignId}"
+            );
+        }
+
+        return $assignId;
     }
 
-    public static function updateStatus(int $assignmentId, string $status): bool
+    public static function assignBulk(int $taskId, array $internIds, int $assignedBy, string $startDate, string $dueDate): int
+    {
+        $createdCount = 0;
+        foreach ($internIds as $internId) {
+            $res = self::assign($taskId, (int)$internId, $assignedBy, $startDate, $dueDate);
+            if ($res !== null) {
+                $createdCount++;
+            }
+        }
+        return $createdCount;
+    }
+
+    public static function updateStatus(int $assignmentId, string $status, int $userId, ?string $comments = null): bool
     {
         $pdo = Database::getConnection();
+        $current = self::findById($assignmentId);
+        $prevStatus = $current['status'] ?? 'assigned';
+
         $sql = "UPDATE task_assignments SET status = ?";
         if ($status === 'in_progress') {
             $sql .= ", started_at = COALESCE(started_at, NOW())";
-        } elseif ($status === 'approved' || $status === 'submitted') {
+        } elseif ($status === 'submitted') {
             $sql .= ", completed_at = NOW()";
         }
         $sql .= " WHERE id = ?";
         $stmt = $pdo->prepare($sql);
-        return $stmt->execute([$status, $assignmentId]);
+        $success = $stmt->execute([$status, $assignmentId]);
+
+        if ($success) {
+            self::recordHistory($assignmentId, $userId, $status, $prevStatus, $status, null, $comments);
+        }
+
+        return $success;
     }
 
-    public static function evaluate(int $assignmentId, int $reviewerId, string $status, float $score, ?string $feedback): bool
+    public static function evaluate(int $assignmentId, int $reviewerId, string $decision, ?float $score, ?string $feedback): bool
     {
         $pdo = Database::getConnection();
+        $assignment = self::findById($assignmentId);
+        $prevStatus = $assignment['status'] ?? 'submitted';
+
+        $finalStatus = 'approved';
+        $finalScore = $score;
+
+        if ($decision === 'rejected') {
+            $finalStatus = 'rejected';
+            $finalScore = null; // No passing grade
+        } elseif ($decision === 'reopened' || $decision === 'in_review') {
+            $finalStatus = 'in_progress'; // Back to in_progress so intern must resubmit
+            $finalScore = null;
+        }
+
         $stmt = $pdo->prepare("
             UPDATE task_assignments
             SET status = ?, score = ?, supervisor_feedback = ?, reviewed_by = ?, reviewed_at = NOW()
             WHERE id = ?
         ");
-        return $stmt->execute([$status, $score, $feedback, $reviewerId, $assignmentId]);
+        $success = $stmt->execute([$finalStatus, $finalScore, $feedback, $reviewerId, $assignmentId]);
+
+        if ($success) {
+            // Record in task_history
+            self::recordHistory($assignmentId, $reviewerId, $decision, $prevStatus, $finalStatus, $finalScore, $feedback);
+
+            // Notify Intern
+            $internUserId = (int)($assignment['intern_user_id'] ?? 0);
+            if ($internUserId > 0) {
+                if ($finalStatus === 'approved') {
+                    Notification::create(
+                        $internUserId,
+                        'task',
+                        'Tarefa Aprovada: ' . $assignment['title'],
+                        "A sua entrega foi APROVADA com a nota " . number_format((float)$finalScore, 1) . "/100! Parecer: {$feedback}",
+                        "/intern/tasks/{$assignmentId}"
+                    );
+                } elseif ($finalStatus === 'rejected') {
+                    Notification::create(
+                        $internUserId,
+                        'task',
+                        'Tarefa Reprovada: ' . $assignment['title'],
+                        "A sua entrega foi REPROVADA pelo orientador. Parecer: {$feedback}",
+                        "/intern/tasks/{$assignmentId}"
+                    );
+                } else {
+                    Notification::create(
+                        $internUserId,
+                        'task',
+                        'Tarefa Reaberta para Correções: ' . $assignment['title'],
+                        "O orientador solicitou correções e reabriu a tarefa. Parecer: {$feedback}",
+                        "/intern/tasks/{$assignmentId}"
+                    );
+                }
+            }
+        }
+
+        return $success;
+    }
+
+    public static function recordHistory(int $assignmentId, int $userId, string $action, ?string $prevStatus, string $newStatus, ?float $score, ?string $comments): void
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("
+            INSERT INTO task_history (assignment_id, user_id, action, previous_status, new_status, score, comments, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+        ");
+        $stmt->execute([$assignmentId, $userId, $action, $prevStatus, $newStatus, $score, $comments]);
+    }
+
+    public static function getHistory(int $assignmentId): array
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("
+            SELECT th.*, u.name as user_name
+            FROM task_history th
+            INNER JOIN users u ON u.id = th.user_id
+            WHERE th.assignment_id = ?
+            ORDER BY th.created_at ASC
+        ");
+        $stmt->execute([$assignmentId]);
+        return $stmt->fetchAll();
     }
 
     public static function getSubmissions(int $assignmentId): array

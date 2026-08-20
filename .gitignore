@@ -23,6 +23,9 @@
 !/public/uploads/avatars/.gitkeep
 !/public/uploads/.htaccess
 
+# Temporary scratch
+scratch/
+
 # OS / Editor files
 .DS_Store
 Thumbs.db

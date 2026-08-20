@@ -15,6 +15,13 @@
             </div>
         <?php endif; ?>
 
+        <?php if ($suc = \App\Helpers\flash('success')): ?>
+            <div class="alert alert-success alert-dismissible fade show small" role="alert">
+                <i class="bi bi-check-circle-fill me-1"></i> <?= \App\Helpers\e($suc) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
         <?php if ($inf = \App\Helpers\flash('info')): ?>
             <div class="alert alert-info alert-dismissible fade show small" role="alert">
                 <i class="bi bi-info-circle-fill me-1"></i> <?= \App\Helpers\e($inf) ?>
@@ -33,18 +40,27 @@
                 </div>
             </div>
 
-            <div class="mb-4">
-                <label for="password" class="form-label small fw-semibold">Palavra-passe</label>
-                <div class="input-group">
+            <div class="mb-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <label for="password" class="form-label small fw-semibold mb-0">Palavra-passe</label>
+                    <a href="/forgot-password" class="small text-decoration-none text-primary">Esqueceu a palavra-passe?</a>
+                </div>
+                <div class="input-group mt-1">
                     <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
                     <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm mt-3">
                 <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sessão
             </button>
         </form>
+
+        <div class="text-center mt-3">
+            <a href="/politica-privacidade" target="_blank" class="small text-muted text-decoration-none">
+                <i class="bi bi-shield-check me-1"></i> Política de Privacidade (Lei 22/11)
+            </a>
+        </div>
 
         <hr class="my-4 text-muted">
 

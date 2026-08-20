@@ -28,7 +28,7 @@
                     <?php foreach ($assignment['submissions'] as $sub): ?>
                         <div class="p-3 border rounded-3 bg-white mb-3 shadow-xs">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="badge bg-success">Versão #<?= $sub['version_number'] ?></span>
+                                <span class="badge bg-success">Versão Submetida</span>
                                 <span class="text-muted small"><?= \App\Helpers\format_date($sub['submitted_at'], true) ?></span>
                             </div>
 
@@ -52,8 +52,34 @@
                     <?php endforeach; ?>
                 <?php endif; ?>
 
+                <!-- Full Task Audit History Timeline (Section 19) -->
+                <h6 class="fw-bold text-muted small text-uppercase border-bottom pb-2 mt-4">
+                    <i class="bi bi-clock-history me-1 text-primary"></i> Histórico Completo de Transições & Avaliações
+                </h6>
+                <div class="timeline p-2 mb-4 bg-light rounded-3">
+                    <?php if (empty($assignment['history'])): ?>
+                        <p class="text-muted small mb-0 p-2">Sem histórico anterior registrado.</p>
+                    <?php else: ?>
+                        <?php foreach ($assignment['history'] as $h): ?>
+                            <div class="d-flex justify-content-between align-items-start py-2 border-bottom small">
+                                <div>
+                                    <span class="badge bg-secondary text-uppercase"><?= \App\Helpers\e($h['action']) ?></span>
+                                    <span class="ms-1 fw-bold text-dark"><?= \App\Helpers\e($h['user_name']) ?></span>
+                                    <?php if (!empty($h['score'])): ?>
+                                        <span class="badge bg-success ms-1">Nota: <?= $h['score'] ?></span>
+                                    <?php endif; ?>
+                                    <?php if (!empty($h['comments'])): ?>
+                                        <div class="text-muted mt-1 fst-italic">"<?= \App\Helpers\e($h['comments']) ?>"</div>
+                                    <?php endif; ?>
+                                </div>
+                                <span class="text-muted" style="font-size: 11px;"><?= \App\Helpers\format_date($h['created_at'], true) ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+
                 <!-- Comments Thread -->
-                <h6 class="fw-bold text-muted small text-uppercase border-bottom pb-2 mt-4">Comentários & Feedback em Tempo Real</h6>
+                <h6 class="fw-bold text-muted small text-uppercase border-bottom pb-2">Comentários com o Estagiário</h6>
                 <div class="mb-3">
                     <?php foreach ($assignment['comments'] as $c): ?>
                         <div class="p-2 border-bottom small">
@@ -87,29 +113,43 @@
                     <?= \App\Helpers\csrf_field() ?>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Decisão da Avaliação *</label>
-                        <select name="status" class="form-select" required>
-                            <option value="approved" selected>Aprovar Tarefa</option>
-                            <option value="rejected">Reprovar Tarefa</option>
-                            <option value="in_review">Solicitar Correções / Reabrir</option>
+                        <label class="form-label small fw-semibold">Decisão do Parecer *</label>
+                        <select name="status" id="decisionSelect" class="form-select" required onchange="handleDecisionChange(this.value)">
+                            <option value="approved" selected>🟢 Aprovar Tarefa (Concluída com Nota)</option>
+                            <option value="rejected">🔴 Reprovar Tarefa (Não Concluída / Sem Nota)</option>
+                            <option value="reopened">🟡 Solicitar Correções / Reabrir Tarefa</option>
                         </select>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3" id="scoreGroup">
                         <label class="form-label small fw-semibold">Nota Atribuída (0 a 100) *</label>
-                        <input type="number" step="0.5" name="score" class="form-control form-control-lg fw-bold" value="<?= $assignment['score'] ?? 95 ?>" min="0" max="100" required>
+                        <input type="number" step="0.5" name="score" id="scoreInput" class="form-control form-control-lg fw-bold" value="<?= $assignment['score'] ?? 95 ?>" min="0" max="100" required>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label small fw-semibold">Feedback Detalhado & Orientações *</label>
-                        <textarea name="supervisor_feedback" class="form-control" rows="5" placeholder="Elogios, pontos a melhorar e orientações técnicas para o aluno..." required><?= \App\Helpers\e($assignment['supervisor_feedback'] ?? '') ?></textarea>
+                        <label class="form-label small fw-semibold">Feedback Técnico & Orientações *</label>
+                        <textarea name="supervisor_feedback" class="form-control" rows="5" placeholder="Elogios, correções necessárias, boas práticas de código e orientações..." required><?= \App\Helpers\e($assignment['supervisor_feedback'] ?? '') ?></textarea>
                     </div>
 
                     <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm">
-                        <i class="bi bi-check-circle me-1"></i> Gravar Parecer e Atualizar Nota
+                        <i class="bi bi-check-circle me-1"></i> Gravar Parecer e Atualizar Histórico
                     </button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function handleDecisionChange(val) {
+    const scoreGroup = document.getElementById('scoreGroup');
+    const scoreInput = document.getElementById('scoreInput');
+    if (val === 'rejected' || val === 'reopened') {
+        scoreGroup.classList.add('d-none');
+        scoreInput.removeAttribute('required');
+    } else {
+        scoreGroup.classList.remove('d-none');
+        scoreInput.setAttribute('required', 'required');
+    }
+}
+</script>

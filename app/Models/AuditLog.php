@@ -49,4 +49,9 @@ class AuditLog
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    public static function getUnreadNotificationsCount(int $userId): int
+    {
+        return Notification::getUnreadCount($userId);
+    }
 }

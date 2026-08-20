@@ -6,8 +6,10 @@ use App\Controllers\Admin\AuditController;
 use App\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Controllers\Admin\InstitutionsController;
 use App\Controllers\Admin\InternsController;
+use App\Controllers\Admin\MessagesController as AdminMessages;
 use App\Controllers\Admin\SettingsController;
 use App\Controllers\Institution\DashboardController as InstDashboard;
+use App\Controllers\Institution\MessagesController as InstMessages;
 use App\Controllers\Intern\AcademyController;
 use App\Controllers\Intern\AttendanceController as InternAttendance;
 use App\Controllers\Intern\CertificateController as InternCert;
@@ -17,6 +19,9 @@ use App\Controllers\Intern\TasksController as InternTasks;
 use App\Controllers\Intern\TestsController as InternTests;
 use App\Controllers\Public\AuthController;
 use App\Controllers\Public\CertificateValidationController;
+use App\Controllers\Public\PasswordResetController;
+use App\Controllers\Public\PrivacyController;
+use App\Controllers\Public\ProfileController;
 use App\Core\Router;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\CsrfMiddleware;
@@ -25,10 +30,7 @@ use App\Middleware\SecurityHeadersMiddleware;
 
 /** @var Router $router */
 
-// Global Security Headers
-// Note: router handles pipeline per route group
-
-// Public Routes
+// Public / Landing
 $router->get('/', function ($request) {
     if (\App\Helpers\auth_check()) {
         $user = \App\Helpers\auth_user();
@@ -39,12 +41,36 @@ $router->get('/', function ($request) {
     return (new \App\Core\Response())->redirect('/login');
 });
 
+// Authentication
 $router->get('/login', [AuthController::class, 'showLogin']);
 $router->post('/login', [AuthController::class, 'login'], [CsrfMiddleware::class]);
 $router->post('/logout', [AuthController::class, 'logout'], [CsrfMiddleware::class]);
 
+// Password Recovery ("Esqueci minha password")
+$router->get('/forgot-password', [PasswordResetController::class, 'showForgotForm']);
+$router->post('/forgot-password', [PasswordResetController::class, 'sendResetLink'], [CsrfMiddleware::class]);
+$router->get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm']);
+$router->post('/reset-password/{token}', [PasswordResetController::class, 'resetPassword'], [CsrfMiddleware::class]);
+
+// Privacy Policy (Lei 22/11 Angola)
+$router->get('/politica-privacidade', [PrivacyController::class, 'showPolicy']);
+
 // Public Certificate & QR Code Validation
 $router->get('/validar/{hash}', [CertificateValidationController::class, 'validate']);
+
+// Authenticated User Profile & Privacy Rights Routes (Any authenticated user)
+$router->group([
+    'prefix' => 'profile',
+    'middleware' => [AuthMiddleware::class, CsrfMiddleware::class]
+], function (Router $r) {
+    $r->get('/', [ProfileController::class, 'show']);
+    $r->post('/update', [ProfileController::class, 'update']);
+    $r->get('/change-password', [ProfileController::class, 'changePassword']);
+    $r->post('/update-password', [ProfileController::class, 'updatePassword']);
+    $r->get('/privacy', [PrivacyController::class, 'showProfilePrivacy']);
+    $r->post('/privacy/consent', [PrivacyController::class, 'recordConsent']);
+    $r->post('/privacy/request', [PrivacyController::class, 'submitRequest']);
+});
 
 // Admin Portal Routes (Roles: super_admin, admin)
 $router->group([
@@ -57,6 +83,7 @@ $router->group([
     $r->get('/interns', [InternsController::class, 'index']);
     $r->get('/interns/create', [InternsController::class, 'create']);
     $r->post('/interns/store', [InternsController::class, 'store']);
+    $r->get('/interns/calculate-end-date', [InternsController::class, 'calculateEndDateApi']);
     $r->get('/interns/{id}', [InternsController::class, 'show']);
     $r->post('/interns/{id}/generate-certificate', [InternsController::class, 'generateCertificate']);
 
@@ -64,6 +91,10 @@ $router->group([
     $r->get('/institutions', [InstitutionsController::class, 'index']);
     $r->get('/institutions/create', [InstitutionsController::class, 'create']);
     $r->post('/institutions/store', [InstitutionsController::class, 'store']);
+
+    // Institutional Messages
+    $r->get('/messages', [AdminMessages::class, 'index']);
+    $r->post('/messages/{id}/reply', [AdminMessages::class, 'reply']);
 
     // Settings & Audit
     $r->get('/settings', [SettingsController::class, 'index']);
@@ -112,10 +143,11 @@ $router->group([
     $r->post('/tasks/{id}/submit', [InternTasks::class, 'submit']);
     $r->post('/tasks/{id}/comment', [InternTasks::class, 'addComment']);
 
-    // Academy
+    // Academy & Doubts
     $r->get('/academy', [AcademyController::class, 'index']);
     $r->get('/academy/course/{id}', [AcademyController::class, 'course']);
     $r->post('/academy/content/{id}/complete', [AcademyController::class, 'completeContent']);
+    $r->post('/academy/doubt/{id}', [AcademyController::class, 'submitDoubt']);
 
     // Tests
     $r->get('/tests/{id}', [InternTests::class, 'show']);
@@ -123,6 +155,8 @@ $router->group([
 
     // Portfolio & Certificate
     $r->get('/portfolio', [PortfolioController::class, 'index']);
+    $r->post('/portfolio/save-custom', [PortfolioController::class, 'saveCustomization']);
+    $r->post('/portfolio/share', [PortfolioController::class, 'recordSocialShare']);
     $r->get('/certificate', [InternCert::class, 'index']);
 });
 
@@ -133,4 +167,9 @@ $router->group([
 ], function (Router $r) {
     $r->get('/dashboard', [InstDashboard::class, 'index']);
     $r->get('/interns/{id}', [InstDashboard::class, 'showIntern']);
+    
+    // Institutional Messages
+    $r->get('/messages', [InstMessages::class, 'index']);
+    $r->post('/messages/create', [InstMessages::class, 'createConversation']);
+    $r->post('/messages/{id}/send', [InstMessages::class, 'sendMessage']);
 });

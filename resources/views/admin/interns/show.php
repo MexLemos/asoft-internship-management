@@ -7,7 +7,7 @@
                     <i class="bi bi-person-fill fs-1"></i>
                 </div>
                 <h4 class="fw-bold text-dark mb-1"><?= \App\Helpers\e($intern['full_name']) ?></h4>
-                <div class="text-muted small mb-2"><?= \App\Helpers\e($intern['course']) ?></div>
+                <div class="text-muted small mb-2"><?= \App\Helpers\e($intern['course']) ?> (<?= \App\Helpers\e($intern['formation_level'] ?? '13ª') ?>)</div>
                 <div class="badge bg-secondary mb-3"><?= \App\Helpers\e($intern['internship_code']) ?></div>
 
                 <div class="d-flex justify-content-center gap-2 mb-4">
@@ -24,6 +24,10 @@
                     <li class="list-group-item d-flex justify-content-between">
                         <span class="text-muted">BI:</span>
                         <strong><?= \App\Helpers\e($intern['bi_number']) ?></strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Área de Estágio:</span>
+                        <strong><?= \App\Helpers\e($intern['internship_area'] ?? 'Geral') ?></strong>
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
                         <span class="text-muted">Instituição:</span>
@@ -43,23 +47,14 @@
                     </li>
                 </ul>
 
-                <!-- Certificate Generation Action -->
+                <!-- Certificate Verification & Emission Trigger -->
                 <div class="mt-4 pt-3 border-top">
-                    <?php if ($eligibility['eligible']): ?>
-                        <form action="/admin/interns/<?= $intern['id'] ?>/generate-certificate" method="POST">
-                            <?= \App\Helpers\csrf_field() ?>
-                            <button type="submit" class="btn btn-success w-100 py-2 fw-bold">
-                                <i class="bi bi-patch-check-fill me-1"></i> Emitir Declaração / Certificado Oficial
-                            </button>
-                        </form>
-                    <?php else: ?>
-                        <button class="btn btn-secondary w-100 py-2" disabled>
-                            <i class="bi bi-lock-fill me-1"></i> Certificado Indisponível (Requisitos Pendentes)
-                        </button>
-                        <div class="small text-danger text-start mt-2">
-                            <?php foreach ($eligibility['reasons'] as $r): ?>
-                                <div>• <?= \App\Helpers\e($r) ?></div>
-                            <?php endforeach; ?>
+                    <button type="button" class="btn <?= $eligibility['eligible'] ? 'btn-success' : 'btn-outline-primary' ?> w-100 py-2 fw-bold" data-bs-toggle="modal" data-bs-target="#modalCertificateChecklist">
+                        <i class="bi bi-patch-check-fill me-1"></i> Emitir Declaração / Certificado
+                    </button>
+                    <?php if (!$eligibility['eligible']): ?>
+                        <div class="small text-muted mt-2">
+                            <i class="bi bi-info-circle me-1"></i> Clique para verificar os requisitos pendentes.
                         </div>
                     <?php endif; ?>
                 </div>
@@ -167,7 +162,15 @@
                                     <td><strong><?= \App\Helpers\e($t['title']) ?></strong></td>
                                     <td><span class="badge bg-<?= $t['color_badge'] ?>"><?= \App\Helpers\e($t['category_name']) ?></span></td>
                                     <td class="small"><?= \App\Helpers\format_date($t['due_date']) ?></td>
-                                    <td><span class="badge bg-info text-dark"><?= \App\Helpers\e($t['status']) ?></span></td>
+                                    <td>
+                                        <?php if ($t['status'] === 'approved'): ?>
+                                            <span class="badge bg-success">Aprovada</span>
+                                        <?php elseif ($t['status'] === 'rejected'): ?>
+                                            <span class="badge bg-danger">Reprovada</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning text-dark"><?= \App\Helpers\e($t['status']) ?></span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td><?= $t['score'] ? number_format((float)$t['score'], 1) : '-' ?></td>
                                 </tr>
                             <?php endforeach; ?>
@@ -191,6 +194,79 @@
                         </div>
                     <?php endforeach; ?>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Checklist Requisitos para Emissão de Declaração -->
+<div class="modal fade" id="modalCertificateChecklist" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-white">
+                <h5 class="modal-title fw-bold text-primary">
+                    <i class="bi bi-shield-check me-2"></i> Requisitos para Emissão de Declaração Oficial
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="small text-muted mb-4">
+                    A emissão da Declaração e Certificado de Estágio com QR Code exige a validação formal de todos os critérios pedagógicos e operacionais definidos pela Asoftmedia.
+                </p>
+
+                <div class="list-group mb-4">
+                    <?php foreach ($eligibility['checklist'] as $key => $item): ?>
+                        <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <?php if ($item['status']): ?>
+                                    <div class="rounded-circle bg-success bg-opacity-10 text-success p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                        <i class="bi bi-check-lg fs-5"></i>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                        <i class="bi bi-x-lg fs-5"></i>
+                                    </div>
+                                <?php endif; ?>
+                                <div>
+                                    <strong class="text-dark small d-block"><?= \App\Helpers\e($item['label']) ?></strong>
+                                    <span class="text-muted small"><?= \App\Helpers\e($item['details']) ?></span>
+                                </div>
+                            </div>
+                            <span class="badge <?= $item['status'] ? 'bg-success' : 'bg-danger' ?> px-3 py-2">
+                                <?= $item['status'] ? 'Cumprido' : 'Pendente' ?>
+                            </span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <?php if ($eligibility['eligible']): ?>
+                    <div class="alert alert-success d-flex align-items-center gap-2 mb-0">
+                        <i class="bi bi-patch-check-fill fs-3 text-success"></i>
+                        <div>
+                            <strong>Todos os requisitos foram satisfeitos!</strong><br>
+                            <span class="small">O estágio está concluído e pronto para emissão da declaração oficial com validação por QR Code.</span>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-danger d-flex align-items-center gap-2 mb-0">
+                        <i class="bi bi-exclamation-octagon-fill fs-3 text-danger"></i>
+                        <div>
+                            <strong>Declaração não pode ser emitida no momento.</strong><br>
+                            <span class="small">Existem requisitos pendentes listados acima que devem ser cumpridos pelo estagiário ou orientador.</span>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <?php if ($eligibility['eligible']): ?>
+                    <form action="/admin/interns/<?= $intern['id'] ?>/generate-certificate" method="POST" class="mb-0">
+                        <?= \App\Helpers\csrf_field() ?>
+                        <button type="submit" class="btn btn-success fw-bold px-4">
+                            <i class="bi bi-patch-check-fill me-1"></i> Emitir Agora
+                        </button>
+                    </form>
+                <?php endif; ?>
             </div>
         </div>
     </div>
