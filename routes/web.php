@@ -19,6 +19,7 @@ use App\Controllers\Intern\TasksController as InternTasks;
 use App\Controllers\Intern\TestsController as InternTests;
 use App\Controllers\Public\AuthController;
 use App\Controllers\Public\CertificateValidationController;
+use App\Controllers\Public\NotificationsController;
 use App\Controllers\Public\PasswordResetController;
 use App\Controllers\Public\PrivacyController;
 use App\Controllers\Public\ProfileController;
@@ -57,6 +58,16 @@ $router->get('/politica-privacidade', [PrivacyController::class, 'showPolicy']);
 
 // Public Certificate & QR Code Validation
 $router->get('/validar/{hash}', [CertificateValidationController::class, 'validate']);
+
+// Authenticated Notifications (Any role)
+$router->group([
+    'prefix' => 'notifications',
+    'middleware' => [AuthMiddleware::class, CsrfMiddleware::class]
+], function (Router $r) {
+    $r->get('/', [NotificationsController::class, 'index']);
+    $r->post('/mark-all-read', [NotificationsController::class, 'markAllAsRead']);
+    $r->post('/{id}/read', [NotificationsController::class, 'markAsRead']);
+});
 
 // Authenticated User Profile & Privacy Rights Routes (Any authenticated user)
 $router->group([

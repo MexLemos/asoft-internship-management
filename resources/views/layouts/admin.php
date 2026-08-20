@@ -32,56 +32,23 @@
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/institutions') ? 'active' : '' ?>" href="/admin/institutions">
                     <i class="bi bi-building"></i> Instituições
                 </a>
-                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/supervisors') ? 'active' : '' ?>" href="/admin/supervisors">
-                    <i class="bi bi-person-badge"></i> Supervisores
-                </a>
-                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/users') ? 'active' : '' ?>" href="/admin/users">
-                    <i class="bi bi-person-gear"></i> Usuários & Perfis
-                </a>
             </nav>
 
-            <!-- 2. Formação -->
-            <div class="nav-heading">Formação</div>
+            <!-- 2. Operação & Tarefas -->
+            <div class="nav-heading">Operação & Formação</div>
             <nav class="nav flex-column">
-                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/courses') ? 'active' : '' ?>" href="/admin/courses">
-                    <i class="bi bi-book-half"></i> Cursos & Aulas
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/tasks') ? 'active' : '' ?>" href="/supervisor/tasks">
+                    <i class="bi bi-list-task"></i> Gestão de Tarefas
                 </a>
-                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/tests') ? 'active' : '' ?>" href="/admin/tests">
-                    <i class="bi bi-patch-question"></i> Testes Online
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/competencies') ? 'active' : '' ?>" href="/supervisor/competencies">
+                    <i class="bi bi-award-fill"></i> Competências
                 </a>
-                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/doubts') ? 'active' : '' ?>" href="/admin/doubts">
-                    <i class="bi bi-question-circle"></i> Dúvidas dos Alunos
-                </a>
-            </nav>
-
-            <!-- 3. Avaliação -->
-            <div class="nav-heading">Avaliação</div>
-            <nav class="nav flex-column">
-                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/competencies') ? 'active' : '' ?>" href="/admin/competencies">
-                    <i class="bi bi-award-fill"></i> Matriz Competências
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/intern/academy') ? 'active' : '' ?>" href="/intern/academy">
+                    <i class="bi bi-play-circle-fill"></i> Academia & Cursos
                 </a>
             </nav>
 
-            <!-- 4. Operação -->
-            <div class="nav-heading">Operação</div>
-            <nav class="nav flex-column">
-                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/tasks') ? 'active' : '' ?>" href="/admin/tasks">
-                    <i class="bi bi-list-task"></i> Tarefas Práticas
-                </a>
-                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/attendance') ? 'active' : '' ?>" href="/admin/attendance">
-                    <i class="bi bi-geo-alt-fill"></i> Presenças GPS
-                </a>
-            </nav>
-
-            <!-- 5. Documentos -->
-            <div class="nav-heading">Documentos</div>
-            <nav class="nav flex-column">
-                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/certificates') ? 'active' : '' ?>" href="/admin/certificates">
-                    <i class="bi bi-patch-check-fill"></i> Declarações & Certificados
-                </a>
-            </nav>
-
-            <!-- 6. Comunicação -->
+            <!-- 3. Comunicação -->
             <div class="nav-heading">Comunicação</div>
             <nav class="nav flex-column">
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/messages') ? 'active' : '' ?>" href="/admin/messages">
@@ -92,13 +59,13 @@
                 </a>
             </nav>
 
-            <!-- 7. Sistema -->
-            <div class="nav-heading">Sistema</div>
+            <!-- 4. Sistema & Conformidade -->
+            <div class="nav-heading">Sistema & Conformidade</div>
             <nav class="nav flex-column mb-4">
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/settings') ? 'active' : '' ?>" href="/admin/settings">
                     <i class="bi bi-sliders"></i> Configurações
                 </a>
-                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/privacy') ? 'active' : '' ?>" href="/admin/privacy">
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/profile/privacy') ? 'active' : '' ?>" href="/profile/privacy">
                     <i class="bi bi-shield-lock-fill"></i> Privacidade (Lei 22/11)
                 </a>
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/audit') ? 'active' : '' ?>" href="/admin/audit">
@@ -122,7 +89,7 @@
                 
                 <div class="d-flex align-items-center gap-3">
                     <!-- Notification Bell -->
-                    <a href="/notifications" class="notification-bell text-decoration-none">
+                    <a href="/notifications" class="notification-bell text-decoration-none" title="Notificações">
                         <i class="bi bi-bell"></i>
                         <?php 
                         $unreadCount = \App\Models\AuditLog::getUnreadNotificationsCount((int)\App\Helpers\auth_user()['id']); 
@@ -193,7 +160,7 @@
 
             <!-- Footer -->
             <footer class="bg-white border-top py-3 px-4 text-center text-muted small">
-                &copy; 2026 Asoftmedia - Sistema Integrado de Gestão e Formação de Estagiários (AIMS).
+                &copy; 2026 Asoftmedia - Sistema Integrado de Gestão e Formação de Estagiários (AIMS) • <a href="/politica-privacidade" target="_blank" class="text-decoration-none">Política de Privacidade (Lei 22/11)</a>
             </footer>
         </div>
     </div>

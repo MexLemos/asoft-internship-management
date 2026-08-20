@@ -27,10 +27,20 @@ class Response
         return $this;
     }
 
+    public function getHeaders(): array
+    {
+        return $this->headers;
+    }
+
     public function setContent(string $content): self
     {
         $this->content = $content;
         return $this;
+    }
+
+    public function getContent(): string
+    {
+        return $this->content;
     }
 
     public function json(mixed $data, int $status = 200): self
