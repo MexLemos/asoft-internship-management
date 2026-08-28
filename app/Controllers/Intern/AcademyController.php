@@ -21,13 +21,13 @@ class AcademyController extends Controller
         $user = Session::get('user');
         $intern = Intern::findByUserId((int)$user['id']);
 
-        if (!$intern) {
-            return $this->redirect('/login');
-        }
-
-        $internId = (int)$intern['id'];
-        $courses = Course::all($internId);
-        $mandatoryStats = Course::getMandatoryStatsForIntern($internId);
+        $internId = $intern ? (int)$intern['id'] : 0;
+        $courses = Course::all($internId > 0 ? $internId : null);
+        $mandatoryStats = $internId > 0 ? Course::getMandatoryStatsForIntern($internId) : [
+            'percentage' => 0.0,
+            'completed' => 0,
+            'total' => count(array_filter($courses, fn($c) => !empty($c['is_mandatory'])))
+        ];
 
         return $this->render('intern.academy.index', [
             'title' => 'Academia Asoftmedia - Cursos & Zona de Estudo',
@@ -41,7 +41,7 @@ class AcademyController extends Controller
     {
         $user = Session::get('user');
         $intern = Intern::findByUserId((int)$user['id']);
-        $internId = (int)$intern['id'];
+        $internId = $intern ? (int)$intern['id'] : 0;
 
         $course = Course::findWithModules((int)$id, $internId);
         if (!$course) {
@@ -84,7 +84,7 @@ class AcademyController extends Controller
         }
 
         return $this->render('intern.academy.study_zone', [
-            'title' => 'Zona de Estudo: ' . htmlspecialchars($course['title']),
+            'title' => 'Zona de Estudo: ' . $course['title'],
             'course' => $course,
             'activeContent' => $activeContent,
             'doubts' => $doubts,
@@ -99,43 +99,51 @@ class AcademyController extends Controller
         $question = trim((string)$request->input('question', ''));
         $cId = (int)$contentId;
 
-        if (!empty($question) && $intern) {
-            $pdo = Database::getConnection();
-            $stmt = $pdo->prepare("INSERT INTO content_doubts (content_id, intern_id, question, created_at) VALUES (?, ?, ?, NOW())");
-            $stmt->execute([$cId, (int)$intern['id'], $question]);
-
-            // Notify Supervisor
-            if (!empty($intern['supervisor_id'])) {
-                Notification::create(
-                    (int)$intern['supervisor_id'],
-                    'doubt',
-                    'Nova Dúvida de Estagiário na Academia',
-                    "{$intern['full_name']} enviou uma dúvida na aula: \"{$question}\"",
-                    "/admin/doubts"
-                );
-            }
-
-            Session::flash('success', 'A sua dúvida foi enviada com sucesso! O orientador responderá em breve.');
+        if (!$intern) {
+            Session::flash('error', 'Apenas estagiários matriculados podem enviar dúvidas ao orientador.');
+            return $this->redirect('/intern/academy');
         }
 
-        $courseId = $request->input('course_id', '1');
-        return $this->redirect("/intern/academy/course/{$courseId}?content={$cId}");
-    }
-
-    public function completeContent(Request $request, string $id): Response
-    {
-        $user = Session::get('user');
-        $intern = Intern::findByUserId((int)$user['id']);
-        $contentId = (int)$id;
+        if (empty($question)) {
+            Session::flash('error', 'Por favor, escreva a sua dúvida antes de enviar.');
+            return $this->redirect("/intern/academy/course/" . $request->input('course_id', 1) . "?content={$cId}");
+        }
 
         $pdo = Database::getConnection();
         $stmt = $pdo->prepare("
-            INSERT INTO lesson_progress (intern_id, content_id, status, watch_percentage, completed_at)
-            VALUES (?, ?, 'completed', 100.00, NOW())
-            ON DUPLICATE KEY UPDATE status = 'completed', watch_percentage = 100.00, completed_at = NOW()
+            INSERT INTO content_doubts (content_id, intern_id, question, created_at)
+            VALUES (?, ?, ?, NOW())
         ");
-        $stmt->execute([(int)$intern['id'], $contentId]);
+        $stmt->execute([$cId, (int)$intern['id'], $question]);
 
-        return $this->json(['success' => true]);
+        AuditLog::log('doubt_submitted', 'academy', (int)$pdo->lastInsertId(), null, ['content_id' => $cId], 'success');
+
+        Session::flash('success', 'A sua dúvida foi enviada com sucesso! O orientador responderá em breve.');
+        return $this->redirect("/intern/academy/course/" . $request->input('course_id', 1) . "?content={$cId}");
+    }
+
+    public function completeContent(Request $request, string $contentId): Response
+    {
+        $user = Session::get('user');
+        $intern = Intern::findByUserId((int)$user['id']);
+
+        if (!$intern) {
+            return $this->json(['success' => false, 'message' => 'Estagiário não autenticado.'], 401);
+        }
+
+        $cId = (int)$contentId;
+        $internId = (int)$intern['id'];
+
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("
+            INSERT INTO lesson_progress (intern_id, content_id, status, watch_percentage, completed_at, updated_at)
+            VALUES (?, ?, 'completed', 100.0, NOW(), NOW())
+            ON DUPLICATE KEY UPDATE status = 'completed', watch_percentage = 100.0, completed_at = NOW()
+        ");
+        $stmt->execute([$internId, $cId]);
+
+        AuditLog::log('content_completed', 'academy', $cId, null, null, 'success');
+
+        return $this->json(['success' => true, 'message' => 'Aula concluída com sucesso!']);
     }
 }

@@ -62,7 +62,7 @@ class CoursesController extends Controller
         }
 
         return $this->render('admin.courses.edit', [
-            'title' => 'Gerir Estrutura do Curso: ' . htmlspecialchars($course['title']),
+            'title' => 'Gerir Estrutura do Curso: ' . $course['title'],
             'course' => $course
         ], 'admin');
     }

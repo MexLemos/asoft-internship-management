@@ -182,7 +182,7 @@ class InternsController extends Controller
         $eligibility = $certService->checkEligibility($internId);
 
         return $this->render('admin.interns.show', [
-            'title' => 'Perfil do Estagiário: ' . htmlspecialchars($intern['full_name']),
+            'title' => 'Perfil do Estagiário: ' . $intern['full_name'],
             'intern' => $intern,
             'attendance' => $attendance,
             'tasks' => $tasks,

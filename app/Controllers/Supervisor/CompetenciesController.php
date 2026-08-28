@@ -38,7 +38,7 @@ class CompetenciesController extends Controller
         $competencies = Competency::getForIntern($id);
 
         return $this->render('supervisor.competencies.evaluate', [
-            'title' => 'Matriz de Competências: ' . htmlspecialchars($intern['full_name']),
+            'title' => 'Matriz de Competências: ' . $intern['full_name'],
             'intern' => $intern,
             'competencies' => $competencies
         ], 'supervisor');

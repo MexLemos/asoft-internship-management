@@ -45,7 +45,7 @@ class TasksController extends Controller
         }
 
         return $this->render('intern.tasks.show', [
-            'title' => 'Tarefa: ' . htmlspecialchars($assignment['title']),
+            'title' => 'Tarefa: ' . $assignment['title'],
             'assignment' => $assignment,
             'intern' => $intern
         ], 'intern');

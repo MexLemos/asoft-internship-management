@@ -1,12 +1,22 @@
 <div class="row justify-content-center">
     <div class="col-lg-8">
+        <?php if (empty($intern)): ?>
+            <div class="alert alert-info d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-info-circle-fill fs-4 text-info"></i>
+                <div>
+                    <strong>Modo de Pré-visualização:</strong><br>
+                    <span class="small">Você está a visualizar este teste como administrador/orientador. Apenas contas de estagiários registam tentativas.</span>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <div>
                     <h5 class="fw-bold mb-0 text-primary">
                         <i class="bi bi-patch-question-fill me-2"></i> <?= \App\Helpers\e($test['title']) ?>
                     </h5>
-                    <span class="small text-muted"><?= \App\Helpers\e($test['course_title']) ?> • <?= \App\Helpers\e($test['module_title']) ?></span>
+                    <span class="small text-muted"><?= \App\Helpers\e($test['course_title'] ?? '') ?> • <?= \App\Helpers\e($test['module_title'] ?? '') ?></span>
                 </div>
                 <span class="badge bg-warning text-dark fs-6">Nota Mínima: <?= number_format((float)$test['passing_score'], 0) ?>%</span>
             </div>
@@ -30,7 +40,7 @@
                     </div>
                 <?php endif; ?>
 
-                <?php if ($canAttempt): ?>
+                <?php if ($canAttempt || empty($intern)): ?>
                     <form action="/intern/tests/<?= $test['id'] ?>/submit" method="POST">
                         <?= \App\Helpers\csrf_field() ?>
 
@@ -45,7 +55,7 @@
                                 <div class="d-flex flex-column gap-2">
                                     <?php foreach ($q['options'] as $opt): ?>
                                         <div class="form-check p-2 border rounded-2 bg-light">
-                                            <input class="form-check-input ms-1" type="radio" name="answers[<?= $q['id'] ?>]" id="opt<?= $opt['id'] ?>" value="<?= $opt['id'] ?>" required>
+                                            <input class="form-check-input ms-1" type="radio" name="answers[<?= $q['id'] ?>]" id="opt<?= $opt['id'] ?>" value="<?= $opt['id'] ?>" <?= empty($intern) ? '' : 'required' ?>>
                                             <label class="form-check-label ms-2 w-100 cursor-pointer" for="opt<?= $opt['id'] ?>">
                                                 <?= \App\Helpers\e($opt['option_text']) ?>
                                             </label>
@@ -55,11 +65,13 @@
                             </div>
                         <?php endforeach; ?>
 
-                        <div class="d-flex justify-content-end pt-3 border-top">
-                            <button type="submit" class="btn btn-primary btn-lg px-5 fw-bold shadow-sm">
-                                <i class="bi bi-check2-circle me-1"></i> Submeter Teste para Avaliação
-                            </button>
-                        </div>
+                        <?php if (!empty($intern)): ?>
+                            <div class="d-flex justify-content-end pt-3 border-top">
+                                <button type="submit" class="btn btn-primary btn-lg px-5 fw-bold shadow-sm">
+                                    <i class="bi bi-check2-circle me-1"></i> Submeter Teste para Avaliação
+                                </button>
+                            </div>
+                        <?php endif; ?>
                     </form>
                 <?php else: ?>
                     <div class="alert alert-warning text-center py-4">

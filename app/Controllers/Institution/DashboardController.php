@@ -70,7 +70,7 @@ class DashboardController extends Controller
         $competencies = Competency::getForIntern($internId);
 
         return $this->render('institution.intern_details', [
-            'title' => 'Acompanhamento do Aluno: ' . htmlspecialchars($intern['full_name']),
+            'title' => 'Acompanhamento do Aluno: ' . $intern['full_name'],
             'intern' => $intern,
             'attendance' => $attendance,
             'tasks' => $tasks,

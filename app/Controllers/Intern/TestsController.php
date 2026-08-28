@@ -29,11 +29,12 @@ class TestsController extends Controller
             return $this->redirect('/intern/academy');
         }
 
-        $attempts = Test::getAttemptsForIntern($testId, (int)$intern['id']);
-        $canAttempt = count($attempts) < (int)$test['max_attempts'];
+        $internId = $intern ? (int)$intern['id'] : 0;
+        $attempts = $internId > 0 ? Test::getAttemptsForIntern($testId, $internId) : [];
+        $canAttempt = $internId > 0 && count($attempts) < (int)$test['max_attempts'];
 
         return $this->render('intern.tests.show', [
-            'title' => 'Teste: ' . htmlspecialchars($test['title']),
+            'title' => 'Teste: ' . $test['title'],
             'test' => $test,
             'attempts' => $attempts,
             'canAttempt' => $canAttempt,
@@ -45,6 +46,12 @@ class TestsController extends Controller
     {
         $user = Session::get('user');
         $intern = Intern::findByUserId((int)$user['id']);
+        
+        if (!$intern) {
+            Session::flash('error', 'Apenas estagiários matriculados podem submeter avaliações.');
+            return $this->redirect("/intern/tests/{$id}");
+        }
+
         $internId = (int)$intern['id'];
         $testId = (int)$id;
 

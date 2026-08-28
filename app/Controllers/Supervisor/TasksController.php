@@ -131,7 +131,7 @@ class TasksController extends Controller
         }
 
         return $this->render('supervisor.tasks.review', [
-            'title' => 'Avaliar Submissão: ' . htmlspecialchars($assignment['title']),
+            'title' => 'Avaliar Submissão: ' . $assignment['title'],
             'assignment' => $assignment
         ], 'supervisor');
     }
