@@ -34,8 +34,19 @@
                 </a>
             </nav>
 
-            <!-- 2. Operação & Tarefas -->
-            <div class="nav-heading">Operação & Formação</div>
+            <!-- 2. Formação & Academia (Zona de Estudo) -->
+            <div class="nav-heading">Formação & Academia</div>
+            <nav class="nav flex-column">
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/courses') ? 'active' : '' ?>" href="/admin/courses">
+                    <i class="bi bi-journal-code"></i> Cursos & Zona de Estudo
+                </a>
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/doubts') ? 'active' : '' ?>" href="/admin/doubts">
+                    <i class="bi bi-question-circle-fill"></i> Dúvidas dos Alunos
+                </a>
+            </nav>
+
+            <!-- 3. Operação & Avaliação -->
+            <div class="nav-heading">Operação & Avaliação</div>
             <nav class="nav flex-column">
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/tasks') ? 'active' : '' ?>" href="/supervisor/tasks">
                     <i class="bi bi-list-task"></i> Gestão de Tarefas
@@ -43,12 +54,9 @@
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/competencies') ? 'active' : '' ?>" href="/supervisor/competencies">
                     <i class="bi bi-award-fill"></i> Competências
                 </a>
-                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/intern/academy') ? 'active' : '' ?>" href="/intern/academy">
-                    <i class="bi bi-play-circle-fill"></i> Academia & Cursos
-                </a>
             </nav>
 
-            <!-- 3. Comunicação -->
+            <!-- 4. Comunicação -->
             <div class="nav-heading">Comunicação</div>
             <nav class="nav flex-column">
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/messages') ? 'active' : '' ?>" href="/admin/messages">
@@ -59,7 +67,7 @@
                 </a>
             </nav>
 
-            <!-- 4. Sistema & Conformidade -->
+            <!-- 5. Sistema & Conformidade -->
             <div class="nav-heading">Sistema & Conformidade</div>
             <nav class="nav flex-column mb-4">
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/settings') ? 'active' : '' ?>" href="/admin/settings">

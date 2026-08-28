@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Controllers\Admin\AuditController;
+use App\Controllers\Admin\CoursesController as AdminCourses;
 use App\Controllers\Admin\DashboardController as AdminDashboard;
+use App\Controllers\Admin\DoubtsController as AdminDoubts;
 use App\Controllers\Admin\InstitutionsController;
 use App\Controllers\Admin\InternsController;
 use App\Controllers\Admin\MessagesController as AdminMessages;
@@ -102,6 +104,24 @@ $router->group([
     $r->get('/institutions', [InstitutionsController::class, 'index']);
     $r->get('/institutions/create', [InstitutionsController::class, 'create']);
     $r->post('/institutions/store', [InstitutionsController::class, 'store']);
+
+    // Academy Courses & Study Zone Curriculum Management
+    $r->get('/courses', [AdminCourses::class, 'index']);
+    $r->get('/courses/create', [AdminCourses::class, 'create']);
+    $r->post('/courses/store', [AdminCourses::class, 'store']);
+    $r->get('/courses/{id}/edit', [AdminCourses::class, 'edit']);
+    $r->post('/courses/{id}/update', [AdminCourses::class, 'update']);
+    $r->post('/courses/{id}/delete', [AdminCourses::class, 'delete']);
+    $r->post('/courses/{id}/modules/add', [AdminCourses::class, 'addModule']);
+    $r->post('/courses/modules/{id}/delete', [AdminCourses::class, 'deleteModule']);
+    $r->post('/courses/modules/{id}/lessons/add', [AdminCourses::class, 'addLesson']);
+    $r->post('/courses/lessons/{id}/delete', [AdminCourses::class, 'deleteLesson']);
+    $r->post('/courses/lessons/{id}/contents/add', [AdminCourses::class, 'addContent']);
+    $r->post('/courses/contents/{id}/delete', [AdminCourses::class, 'deleteContent']);
+
+    // Intern Doubts Management
+    $r->get('/doubts', [AdminDoubts::class, 'index']);
+    $r->post('/doubts/{id}/answer', [AdminDoubts::class, 'answer']);
 
     // Institutional Messages
     $r->get('/messages', [AdminMessages::class, 'index']);
