@@ -1,0 +1,48 @@
+name: Deploy AIMS to Hostinger Production
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  web-deploy:
+    name: 🚀 Deploy via FTP to Hostinger
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Obter código do repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: 📂 Sincronizar ficheiros com a Hostinger
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT || 21 }}
+          protocol: ftp
+          server-dir: ${{ secrets.FTP_SERVER_DIR || '/public_html/' }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/.env
+            **/.env.*
+            **/tests/**
+            **/storage/logs/**
+            **/storage/cache/**
+            **/*.sql
+            **/asoft_estagio_production.zip
+            **/scratch/**
+            **/public/uploads/materials/*
+            !**/public/uploads/materials/.gitkeep
+            **/public/uploads/submissions/*
+            !**/public/uploads/submissions/.gitkeep
+            **/public/uploads/certificates/*
+            !**/public/uploads/certificates/.gitkeep
+            **/public/uploads/avatars/*
+            !**/public/uploads/avatars/.gitkeep

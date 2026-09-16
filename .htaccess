@@ -1,0 +1,21 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Bloquear acesso a arquivos confidenciais e de configuração
+    <FilesMatch "^\.env|\.git|\.yml|\.yaml|composer\.(json|lock)|README\.md|database_production\.sql">
+        <IfModule !mod_authz_core.c>
+            Order allow,deny
+            Deny from all
+        </IfModule>
+        <IfModule mod_authz_core.c>
+            Require all denied
+        </IfModule>
+    </FilesMatch>
+
+    # Bloquear acesso direto a diretórios do sistema
+    RewriteRule ^(app|config|database|resources|storage|tests|vendor|scratch)(/.*)?$ - [F,L]
+
+    # Redirecionar tráfego para a pasta public
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

@@ -4,7 +4,8 @@
 # Environment configurations
 .env
 .env.backup
-.env.production
+!.env.production
+
 
 # Storage and Logs
 /storage/logs/*.log
