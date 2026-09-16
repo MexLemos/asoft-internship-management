@@ -116,7 +116,7 @@ class User
     {
         $pdo = Database::getConnection();
         $stmt = $pdo->query("
-            SELECT u.*, 
+            SELECT u.id, u.name, u.email, u.phone, u.avatar, u.username, u.status, u.last_login_at,
                    GROUP_CONCAT(r.display_name SEPARATOR ', ') as roles_display,
                    GROUP_CONCAT(r.name SEPARATOR ',') as roles_slugs,
                    MIN(r.id) as primary_role_id
@@ -125,7 +125,7 @@ class User
             INNER JOIN roles r ON r.id = ur.role_id
             WHERE u.deleted_at IS NULL 
               AND r.name IN ('super_admin', 'admin', 'supervisor')
-            GROUP BY u.id
+            GROUP BY u.id, u.name, u.email, u.phone, u.avatar, u.username, u.status, u.last_login_at
             ORDER BY u.id DESC
         ");
         return $stmt->fetchAll();

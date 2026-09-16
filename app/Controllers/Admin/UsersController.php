@@ -16,9 +16,9 @@ class UsersController extends Controller
     public function index(Request $request): Response
     {
         $employees = User::getEmployees();
-        $query = trim((string)$request->get('q', ''));
-        $roleFilter = trim((string)$request->get('role', ''));
-        $statusFilter = trim((string)$request->get('status', ''));
+        $query = trim((string)$request->input('q', ''));
+        $roleFilter = trim((string)$request->input('role', ''));
+        $statusFilter = trim((string)$request->input('status', ''));
 
         if ($query !== '' || $roleFilter !== '' || $statusFilter !== '') {
             $employees = array_filter($employees, function ($emp) use ($query, $roleFilter, $statusFilter) {
@@ -100,10 +100,10 @@ class UsersController extends Controller
         }
     }
 
-    public function edit(Request $request): Response
+    public function edit(Request $request, string $id = ''): Response
     {
-        $id = (int)$request->param('id');
-        $user = User::findById($id);
+        $targetId = (int)($id !== '' ? $id : $request->input('id', 0));
+        $user = User::findById($targetId);
 
         if (!$user) {
             Session::flash('error', 'Funcionário não encontrado.');
@@ -118,9 +118,9 @@ class UsersController extends Controller
         ], 'admin');
     }
 
-    public function update(Request $request): Response
+    public function update(Request $request, string $id = ''): Response
     {
-        $id = (int)$request->param('id');
+        $targetId = (int)($id !== '' ? $id : $request->input('id', 0));
         $data = $request->all();
 
         $errors = $this->validate($data, [
@@ -132,12 +132,12 @@ class UsersController extends Controller
 
         if (!empty($errors)) {
             Session::flash('error', implode(' ', $errors));
-            return $this->redirect("/admin/users/{$id}/edit");
+            return $this->redirect("/admin/users/{$targetId}/edit");
         }
 
         try {
-            User::updateEmployee($id, $data);
-            AuditLog::log('user_update', 'users', $id, null, [
+            User::updateEmployee($targetId, $data);
+            AuditLog::log('user_update', 'users', $targetId, null, [
                 'name' => $data['name'],
                 'email' => $data['email']
             ], 'success');
@@ -146,40 +146,40 @@ class UsersController extends Controller
             return $this->redirect('/admin/users');
         } catch (\Throwable $e) {
             Session::flash('error', 'Erro ao atualizar funcionário: ' . $e->getMessage());
-            return $this->redirect("/admin/users/{$id}/edit");
+            return $this->redirect("/admin/users/{$targetId}/edit");
         }
     }
 
-    public function toggleStatus(Request $request): Response
+    public function toggleStatus(Request $request, string $id = ''): Response
     {
-        $id = (int)$request->param('id');
+        $targetId = (int)($id !== '' ? $id : $request->input('id', 0));
         $currentUser = Session::get('user');
 
-        if ($currentUser && (int)$currentUser['id'] === $id) {
+        if ($currentUser && (int)$currentUser['id'] === $targetId) {
             Session::flash('error', 'Não pode alterar o estado da sua própria conta.');
             return $this->redirect('/admin/users');
         }
 
-        $newStatus = User::toggleStatus($id);
-        AuditLog::log('user_toggle_status', 'users', $id, null, ['new_status' => $newStatus], 'success');
+        $newStatus = User::toggleStatus($targetId);
+        AuditLog::log('user_toggle_status', 'users', $targetId, null, ['new_status' => $newStatus], 'success');
 
         $statusLabel = ($newStatus === 'active') ? 'ativada' : 'bloqueada';
         Session::flash('info', "A conta do funcionário foi {$statusLabel}.");
         return $this->redirect('/admin/users');
     }
 
-    public function delete(Request $request): Response
+    public function delete(Request $request, string $id = ''): Response
     {
-        $id = (int)$request->param('id');
+        $targetId = (int)($id !== '' ? $id : $request->input('id', 0));
         $currentUser = Session::get('user');
 
-        if ($currentUser && (int)$currentUser['id'] === $id) {
+        if ($currentUser && (int)$currentUser['id'] === $targetId) {
             Session::flash('error', 'Não pode eliminar a sua própria conta.');
             return $this->redirect('/admin/users');
         }
 
-        User::deleteEmployee($id);
-        AuditLog::log('user_delete', 'users', $id, null, null, 'success');
+        User::deleteEmployee($targetId);
+        AuditLog::log('user_delete', 'users', $targetId, null, null, 'success');
 
         Session::flash('success', 'Funcionário removido com sucesso.');
         return $this->redirect('/admin/users');

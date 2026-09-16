@@ -64,6 +64,16 @@ class Request
         return $default;
     }
 
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return $this->get[$key] ?? $this->input($key, $default);
+    }
+
+    public function param(string $key, mixed $default = null): mixed
+    {
+        return $this->input($key, $default);
+    }
+
     public function all(): array
     {
         if ($this->jsonBody !== null) {
