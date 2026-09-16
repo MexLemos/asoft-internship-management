@@ -1,4 +1,4 @@
-<div class="card shadow-lg border-0 rounded-4">
+<div class="card auth-card shadow-lg border-0 rounded-4">
     <div class="card-body p-4 p-md-5">
         <div class="text-center mb-4">
             <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3" style="width: 64px; height: 64px;">
@@ -60,19 +60,6 @@
             <a href="/politica-privacidade" target="_blank" class="small text-muted text-decoration-none">
                 <i class="bi bi-shield-check me-1"></i> Política de Privacidade (Lei 22/11)
             </a>
-        </div>
-
-        <hr class="my-4 text-muted">
-
-        <div class="small text-muted text-center">
-            <p class="mb-2 fw-semibold">Contas de Demonstração:</p>
-            <div class="d-flex flex-wrap justify-content-center gap-1">
-                <span class="badge bg-dark">superadmin</span>
-                <span class="badge bg-secondary">carlos.silva</span>
-                <span class="badge bg-success">joao.manuel</span>
-                <span class="badge bg-info text-dark">isutic_obs</span>
-            </div>
-            <p class="mt-2 mb-0 small text-muted">Palavra-passe geral: <code>Password123!</code></p>
         </div>
     </div>
 </div>
