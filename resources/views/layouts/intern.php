@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="<?= \App\Helpers\csrf_token() ?>">
     <title><?= \App\Helpers\e($title ?? 'Portal do Estagiário - Asoftmedia') ?></title>
     
+    <link rel="icon" type="image/png" href="<?= \App\Helpers\asset('images/logo.png') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Leaflet CSS for maps -->
@@ -16,8 +17,8 @@
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="brand">
-                <i class="bi bi-mortarboard-fill text-primary fs-4"></i>
+            <div class="brand d-flex align-items-center gap-2">
+                <img src="<?= \App\Helpers\asset('images/logo.png') ?>" alt="Asoftmedia" style="width: 28px; height: 28px; object-fit: contain;">
                 <span>ASOFT ACADEMY</span>
             </div>
             

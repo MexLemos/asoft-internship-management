@@ -55,6 +55,16 @@
                             <label class="form-label small fw-semibold">Endereço Completo</label>
                             <input type="text" name="address" class="form-control" placeholder="Rua, Bairro, Município">
                         </div>
+
+                        <div class="col-12">
+                            <div class="alert alert-info border-info border-opacity-25 bg-info bg-opacity-10 d-flex align-items-center mb-0">
+                                <i class="bi bi-info-circle-fill fs-5 text-info me-3"></i>
+                                <div class="small">
+                                    <strong>Conta de Acesso Automática (Role 5 - Instituição):</strong><br>
+                                    Ao gravar, será gerada automaticamente uma conta institucional com o <strong>Utilizador</strong> igual ao e-mail informado e a <strong>palavra-passe padrão</strong> <code>123EstagioAsoft</code>.
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2 pt-4 mt-4 border-top">

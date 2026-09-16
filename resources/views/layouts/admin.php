@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="<?= \App\Helpers\csrf_token() ?>">
     <title><?= \App\Helpers\e($title ?? 'Asoftmedia Internship System') ?></title>
     
+    <link rel="icon" type="image/png" href="<?= \App\Helpers\asset('images/logo.png') ?>">
     <!-- Bootstrap 5 CSS & Icons CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -15,8 +16,8 @@
     <div class="app-container">
         <!-- Fixed Sidebar -->
         <aside class="sidebar">
-            <div class="brand">
-                <i class="bi bi-mortarboard-fill text-primary fs-4"></i>
+            <div class="brand d-flex align-items-center gap-2">
+                <img src="<?= \App\Helpers\asset('images/logo.png') ?>" alt="Asoftmedia" style="width: 28px; height: 28px; object-fit: contain;">
                 <span>ASOFTMEDIA</span>
             </div>
             
@@ -31,6 +32,9 @@
                 </a>
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/institutions') ? 'active' : '' ?>" href="/admin/institutions">
                     <i class="bi bi-building"></i> Instituições
+                </a>
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/users') ? 'active' : '' ?>" href="/admin/users">
+                    <i class="bi bi-person-badge-fill"></i> Funcionários
                 </a>
             </nav>
 

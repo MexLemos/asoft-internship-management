@@ -1,8 +1,8 @@
 <div class="card auth-card shadow-lg border-0 rounded-4">
     <div class="card-body p-4 p-md-5">
         <div class="text-center mb-4">
-            <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3" style="width: 64px; height: 64px;">
-                <i class="bi bi-mortarboard-fill fs-2"></i>
+            <div class="d-inline-flex align-items-center justify-content-center mb-3">
+                <img src="<?= \App\Helpers\asset('images/logo.png') ?>" alt="Asoftmedia" style="width: 76px; height: 76px; object-fit: contain;">
             </div>
             <h4 class="fw-bold text-dark mb-1">ASOFTMEDIA</h4>
             <p class="text-muted small">Gestão & Formação de Estagiários</p>
@@ -36,18 +36,18 @@
                 <label for="identifier" class="form-label small fw-semibold">Email ou Nome de Utilizador</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
-                    <input type="text" class="form-control" id="identifier" name="identifier" placeholder="ex: superadmin@asoftmedia.ao" required autofocus>
+                    <input type="text" class="form-control" id="identifier" name="identifier" placeholder="ex: estagiario@asoftmedia-ao.com" required autofocus>
                 </div>
             </div>
 
-            <div class="mb-2">
-                <div class="d-flex justify-content-between align-items-center">
-                    <label for="password" class="form-label small fw-semibold mb-0">Palavra-passe</label>
-                    <a href="/forgot-password" class="small text-decoration-none text-primary">Esqueceu a palavra-passe?</a>
-                </div>
-                <div class="input-group mt-1">
+            <div class="mb-3">
+                <label for="password" class="form-label small fw-semibold mb-1">Palavra-passe</label>
+                <div class="input-group">
                     <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
                     <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+                </div>
+                <div class="text-end mt-1">
+                    <a href="/forgot-password" class="small text-decoration-none text-primary">Esqueceu a palavra-passe?</a>
                 </div>
             </div>
 

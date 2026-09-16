@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= \App\Helpers\e($title ?? 'Asoftmedia') ?></title>
     
+    <link rel="icon" type="image/png" href="<?= \App\Helpers\asset('images/logo.png') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="/assets/css/custom.css" rel="stylesheet">
@@ -12,8 +13,9 @@
 <body class="bg-light">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/">
-                <i class="bi bi-mortarboard-fill text-primary me-2"></i> ASOFTMEDIA
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
+                <img src="<?= \App\Helpers\asset('images/logo.png') ?>" alt="Asoftmedia" style="width: 28px; height: 28px; object-fit: contain;">
+                <span>ASOFTMEDIA</span>
             </a>
             <div class="d-flex align-items-center">
                 <?php if (\App\Helpers\auth_check()): ?>

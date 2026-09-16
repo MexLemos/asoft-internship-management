@@ -46,7 +46,20 @@ class InstitutionsController extends Controller
         $id = Institution::create($data);
         AuditLog::log('institution_create', 'institutions', $id, null, ['name' => $data['name']], 'success');
 
-        Session::flash('success', 'Instituição parceira cadastrada com sucesso!');
+        Session::flash('success', 'Instituição parceira cadastrada com sucesso! Foi gerada automaticamente a conta institucional com palavra-passe padrão.');
+        return $this->redirect('/admin/institutions');
+    }
+
+    public function syncUsers(Request $request): Response
+    {
+        $created = Institution::syncMissingInstitutionUsers();
+        $count = count($created);
+        if ($count > 0) {
+            AuditLog::log('institutions_sync_users', 'institutions', null, null, ['total_created' => $count], 'success');
+            Session::flash('success', "Foram criadas e associadas com sucesso {$count} conta(s) institucional(ais) com a palavra-passe padrão '123EstagioAsoft'.");
+        } else {
+            Session::flash('info', 'Todas as instituições registadas já possuem as respetivas contas de utilizador associadas.');
+        }
         return $this->redirect('/admin/institutions');
     }
 }

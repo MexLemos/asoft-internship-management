@@ -10,6 +10,7 @@ use App\Controllers\Admin\InstitutionsController;
 use App\Controllers\Admin\InternsController;
 use App\Controllers\Admin\MessagesController as AdminMessages;
 use App\Controllers\Admin\SettingsController;
+use App\Controllers\Admin\UsersController;
 use App\Controllers\Institution\DashboardController as InstDashboard;
 use App\Controllers\Institution\MessagesController as InstMessages;
 use App\Controllers\Intern\AcademyController;
@@ -104,6 +105,16 @@ $router->group([
     $r->get('/institutions', [InstitutionsController::class, 'index']);
     $r->get('/institutions/create', [InstitutionsController::class, 'create']);
     $r->post('/institutions/store', [InstitutionsController::class, 'store']);
+    $r->post('/institutions/sync-users', [InstitutionsController::class, 'syncUsers']);
+
+    // Employees / Users Management
+    $r->get('/users', [UsersController::class, 'index']);
+    $r->get('/users/create', [UsersController::class, 'create']);
+    $r->post('/users/store', [UsersController::class, 'store']);
+    $r->get('/users/{id}/edit', [UsersController::class, 'edit']);
+    $r->post('/users/{id}/update', [UsersController::class, 'update']);
+    $r->post('/users/{id}/toggle-status', [UsersController::class, 'toggleStatus']);
+    $r->post('/users/{id}/delete', [UsersController::class, 'delete']);
 
     // Academy Courses & Study Zone Curriculum Management
     $r->get('/courses', [AdminCourses::class, 'index']);

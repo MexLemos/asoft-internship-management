@@ -108,4 +108,152 @@ class User
         ");
         return $stmt->fetchAll();
     }
+
+    /**
+     * Retorna apenas utilizadores com perfis de funcionários (super_admin, admin, supervisor).
+     */
+    public static function getEmployees(): array
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->query("
+            SELECT u.*, 
+                   GROUP_CONCAT(r.display_name SEPARATOR ', ') as roles_display,
+                   GROUP_CONCAT(r.name SEPARATOR ',') as roles_slugs,
+                   MIN(r.id) as primary_role_id
+            FROM users u
+            INNER JOIN user_roles ur ON ur.user_id = u.id
+            INNER JOIN roles r ON r.id = ur.role_id
+            WHERE u.deleted_at IS NULL 
+              AND r.name IN ('super_admin', 'admin', 'supervisor')
+            GROUP BY u.id
+            ORDER BY u.id DESC
+        ");
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Cadastra um novo funcionário com perfil e senha segura.
+     */
+    public static function createEmployee(array $data): int
+    {
+        $pdo = Database::getConnection();
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare("
+                INSERT INTO users (name, email, phone, username, password_hash, status)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            $passwordHash = password_hash($data['password'], PASSWORD_BCRYPT);
+            $stmt->execute([
+                $data['name'],
+                $data['email'],
+                $data['phone'] ?? null,
+                $data['username'],
+                $passwordHash,
+                $data['status'] ?? 'active'
+            ]);
+            $userId = (int)$pdo->lastInsertId();
+
+            $roleId = (int)($data['role_id'] ?? 3); // 3 = supervisor por defeito
+            $stmtRole = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
+            $stmtRole->execute([$userId, $roleId]);
+
+            $pdo->commit();
+            return $userId;
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Atualiza dados de um funcionário.
+     */
+    public static function updateEmployee(int $id, array $data): bool
+    {
+        $pdo = Database::getConnection();
+        $pdo->beginTransaction();
+        try {
+            if (!empty($data['password'])) {
+                $stmt = $pdo->prepare("
+                    UPDATE users
+                    SET name = ?, email = ?, phone = ?, username = ?, status = ?, password_hash = ?
+                    WHERE id = ? AND deleted_at IS NULL
+                ");
+                $stmt->execute([
+                    $data['name'],
+                    $data['email'],
+                    $data['phone'] ?? null,
+                    $data['username'],
+                    $data['status'] ?? 'active',
+                    password_hash($data['password'], PASSWORD_BCRYPT),
+                    $id
+                ]);
+            } else {
+                $stmt = $pdo->prepare("
+                    UPDATE users
+                    SET name = ?, email = ?, phone = ?, username = ?, status = ?
+                    WHERE id = ? AND deleted_at IS NULL
+                ");
+                $stmt->execute([
+                    $data['name'],
+                    $data['email'],
+                    $data['phone'] ?? null,
+                    $data['username'],
+                    $data['status'] ?? 'active',
+                    $id
+                ]);
+            }
+
+            if (!empty($data['role_id'])) {
+                $delRole = $pdo->prepare("DELETE FROM user_roles WHERE user_id = ?");
+                $delRole->execute([$id]);
+
+                $insRole = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
+                $insRole->execute([$id, (int)$data['role_id']]);
+            }
+
+            $pdo->commit();
+            return true;
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Alterna o estado do funcionário (active <-> blocked).
+     */
+    public static function toggleStatus(int $id): string
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("SELECT status FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        $curr = $stmt->fetchColumn();
+        $newStatus = ($curr === 'active') ? 'blocked' : 'active';
+
+        $upd = $pdo->prepare("UPDATE users SET status = ? WHERE id = ?");
+        $upd->execute([$newStatus, $id]);
+        return $newStatus;
+    }
+
+    /**
+     * Soft delete do funcionário.
+     */
+    public static function deleteEmployee(int $id): bool
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("UPDATE users SET deleted_at = NOW() WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    /**
+     * Retorna perfis atribuíveis para funcionários.
+     */
+    public static function getAssignableRoles(): array
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->query("SELECT id, name, display_name, description FROM roles WHERE name IN ('admin', 'supervisor') ORDER BY id ASC");
+        return $stmt->fetchAll();
+    }
 }
