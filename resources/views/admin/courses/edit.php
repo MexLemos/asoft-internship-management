@@ -1,8 +1,9 @@
+<?php $basePath = !empty($supervisorContext) ? '/supervisor' : '/admin'; ?>
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
     <div>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-1 small">
-                <li class="breadcrumb-item"><a href="/admin/courses">Gestão de Cursos</a></li>
+                <li class="breadcrumb-item"><a href="<?= $basePath ?>/courses">Gestão de Cursos</a></li>
                 <li class="breadcrumb-item active"><?= \App\Helpers\e($course['title']) ?></li>
             </ol>
         </nav>
@@ -14,7 +15,7 @@
         <a href="/intern/academy/course/<?= $course['id'] ?>" target="_blank" class="btn btn-outline-info text-dark btn-sm">
             <i class="bi bi-box-arrow-up-right me-1"></i> Ver como Aluno
         </a>
-        <a href="/admin/courses" class="btn btn-outline-secondary btn-sm">
+        <a href="<?= $basePath ?>/courses" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-arrow-left me-1"></i> Voltar aos Cursos
         </a>
     </div>
@@ -28,7 +29,7 @@
                 <h6 class="fw-bold mb-0 text-dark">Configurações Gerais do Curso</h6>
             </div>
             <div class="card-body p-4">
-                <form action="/admin/courses/<?= $course['id'] ?>/update" method="POST">
+                <form action="<?= $basePath ?>/courses/<?= $course['id'] ?>/update" method="POST">
                     <?= \App\Helpers\csrf_field() ?>
 
                     <div class="mb-3">
@@ -105,7 +106,7 @@
                                         <button type="button" class="btn btn-outline-success btn-sm py-1" onclick="openAddLessonModal(<?= $mod['id'] ?>, '<?= \App\Helpers\e($mod['title']) ?>')">
                                             <i class="bi bi-plus-circle me-1"></i> Nova Aula
                                         </button>
-                                        <form action="/admin/courses/modules/<?= $mod['id'] ?>/delete" method="POST" class="d-inline mb-0" onsubmit="return confirm('Remover este módulo e todas as suas aulas?')">
+                                        <form action="<?= $basePath ?>/courses/modules/<?= $mod['id'] ?>/delete" method="POST" class="d-inline mb-0" onsubmit="return confirm('Remover este módulo e todas as suas aulas?')">
                                             <?= \App\Helpers\csrf_field() ?>
                                             <input type="hidden" name="course_id" value="<?= $course['id'] ?>">
                                             <button type="submit" class="btn btn-outline-danger btn-sm py-1" title="Excluir Módulo">
@@ -131,7 +132,7 @@
                                                             <button type="button" class="btn btn-primary btn-sm py-0 px-2 small" onclick="openAddContentModal(<?= $les['id'] ?>, '<?= \App\Helpers\e($les['title']) ?>')">
                                                                 <i class="bi bi-plus-lg"></i> Conteúdo
                                                             </button>
-                                                            <form action="/admin/courses/lessons/<?= $les['id'] ?>/delete" method="POST" class="d-inline mb-0" onsubmit="return confirm('Remover esta aula?')">
+                                                            <form action="<?= $basePath ?>/courses/lessons/<?= $les['id'] ?>/delete" method="POST" class="d-inline mb-0" onsubmit="return confirm('Remover esta aula?')">
                                                                 <?= \App\Helpers\csrf_field() ?>
                                                                 <input type="hidden" name="course_id" value="<?= $course['id'] ?>">
                                                                 <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" title="Excluir Aula">
@@ -161,7 +162,7 @@
                                                                         <?php endif; ?>
                                                                         <span class="text-muted">(<?= $cnt['duration_minutes'] ?> min)</span>
                                                                     </div>
-                                                                    <form action="/admin/courses/contents/<?= $cnt['id'] ?>/delete" method="POST" class="d-inline mb-0" onsubmit="return confirm('Remover este conteúdo?')">
+                                                                    <form action="<?= $basePath ?>/courses/contents/<?= $cnt['id'] ?>/delete" method="POST" class="d-inline mb-0" onsubmit="return confirm('Remover este conteúdo?')">
                                                                         <?= \App\Helpers\csrf_field() ?>
                                                                         <input type="hidden" name="course_id" value="<?= $course['id'] ?>">
                                                                         <button type="submit" class="btn btn-link text-danger p-0 text-decoration-none" title="Remover Conteúdo">
@@ -190,7 +191,7 @@
 <div class="modal fade" id="modalAddModule" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="/admin/courses/<?= $course['id'] ?>/modules/add" method="POST">
+            <form action="<?= $basePath ?>/courses/<?= $course['id'] ?>/modules/add" method="POST">
                 <?= \App\Helpers\csrf_field() ?>
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold text-primary">Adicionar Novo Módulo</h5>
@@ -336,14 +337,15 @@
 </div>
 
 <script>
+const _basePath = '<?= $basePath ?>';
 function openAddLessonModal(moduleId, moduleTitle) {
-    document.getElementById('formAddLesson').action = `/admin/courses/modules/${moduleId}/lessons/add`;
+    document.getElementById('formAddLesson').action = `${_basePath}/courses/modules/${moduleId}/lessons/add`;
     document.getElementById('lessonModuleName').value = moduleTitle;
     new bootstrap.Modal(document.getElementById('modalAddLesson')).show();
 }
 
 function openAddContentModal(lessonId, lessonTitle) {
-    document.getElementById('formAddContent').action = `/admin/courses/lessons/${lessonId}/contents/add`;
+    document.getElementById('formAddContent').action = `${_basePath}/courses/lessons/${lessonId}/contents/add`;
     document.getElementById('contentLessonName').value = lessonTitle;
     new bootstrap.Modal(document.getElementById('modalAddContent')).show();
 }

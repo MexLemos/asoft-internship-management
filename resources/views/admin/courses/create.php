@@ -1,3 +1,4 @@
+<?php $basePath = !empty($supervisorContext) ? '/supervisor' : '/admin'; ?>
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card shadow-sm border-0">
@@ -5,12 +6,12 @@
                 <h5 class="fw-bold mb-0 text-primary">
                     <i class="bi bi-plus-circle me-2"></i> Criar Novo Curso para a Zona de Estudo
                 </h5>
-                <a href="/admin/courses" class="btn btn-outline-secondary btn-sm">
+                <a href="<?= $basePath ?>/courses" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-arrow-left me-1"></i> Voltar à Lista
                 </a>
             </div>
             <div class="card-body p-4">
-                <form action="/admin/courses/store" method="POST">
+                <form action="<?= $basePath ?>/courses/store" method="POST">
                     <?= \App\Helpers\csrf_field() ?>
 
                     <div class="mb-3">
@@ -47,7 +48,7 @@
                     </div>
 
                     <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-                        <a href="/admin/courses" class="btn btn-light">Cancelar</a>
+                        <a href="<?= $basePath ?>/courses" class="btn btn-light">Cancelar</a>
                         <button type="submit" class="btn btn-primary fw-bold px-4">
                             <i class="bi bi-arrow-right-circle me-1"></i> Criar & Adicionar Aulas
                         </button>

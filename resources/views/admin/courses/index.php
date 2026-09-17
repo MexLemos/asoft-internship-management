@@ -1,13 +1,14 @@
+<?php $basePath = !empty($supervisorContext) ? '/supervisor' : '/admin'; ?>
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
     <div>
         <h4 class="fw-bold mb-1">Gestão de Cursos & Zona de Estudo</h4>
         <p class="text-muted small mb-0">Gerencie todos os cursos, módulos, videoaulas e documentos que aparecem na Zona de Estudo dos estagiários.</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="/admin/doubts" class="btn btn-outline-warning text-dark">
+        <a href="<?= $basePath ?>/doubts" class="btn btn-outline-warning text-dark">
             <i class="bi bi-question-circle-fill me-1"></i> Dúvidas dos Alunos
         </a>
-        <a href="/admin/courses/create" class="btn btn-primary">
+        <a href="<?= $basePath ?>/courses/create" class="btn btn-primary">
             <i class="bi bi-plus-circle-fill me-1"></i> Novo Curso
         </a>
     </div>
@@ -69,10 +70,10 @@
                                 </td>
                                 <td class="text-end">
                                     <div class="d-flex justify-content-end gap-1">
-                                        <a href="/admin/courses/<?= $c['id'] ?>/edit" class="btn btn-outline-primary btn-sm" title="Gerir Aulas e Conteúdos">
+                                        <a href="<?= $basePath ?>/courses/<?= $c['id'] ?>/edit" class="btn btn-outline-primary btn-sm" title="Gerir Aulas e Conteúdos">
                                             <i class="bi bi-diagram-3-fill me-1"></i> Estrutura & Aulas
                                         </a>
-                                        <form action="/admin/courses/<?= $c['id'] ?>/delete" method="POST" class="d-inline mb-0" onsubmit="return confirm('Tem a certeza de que deseja remover este curso e todos os seus módulos e aulas?')">
+                                        <form action="<?= $basePath ?>/courses/<?= $c['id'] ?>/delete" method="POST" class="d-inline mb-0" onsubmit="return confirm('Tem a certeza de que deseja remover este curso e todos os seus módulos e aulas?')">
                                             <?= \App\Helpers\csrf_field() ?>
                                             <button type="submit" class="btn btn-outline-danger btn-sm" title="Excluir Curso">
                                                 <i class="bi bi-trash"></i>

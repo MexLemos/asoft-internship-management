@@ -150,7 +150,7 @@ $router->group([
     'middleware' => [AuthMiddleware::class, new RoleMiddleware('supervisor', 'super_admin', 'admin'), CsrfMiddleware::class]
 ], function (Router $r) {
     $r->get('/dashboard', [\App\Controllers\Supervisor\DashboardController::class, 'index']);
-    
+
     // Tasks
     $r->get('/tasks', [\App\Controllers\Supervisor\TasksController::class, 'index']);
     $r->get('/tasks/create', [\App\Controllers\Supervisor\TasksController::class, 'create']);
@@ -164,6 +164,28 @@ $router->group([
     $r->get('/competencies', [\App\Controllers\Supervisor\CompetenciesController::class, 'index']);
     $r->get('/competencies/evaluate/{id}', [\App\Controllers\Supervisor\CompetenciesController::class, 'evaluate']);
     $r->post('/competencies/evaluate/{id}/save', [\App\Controllers\Supervisor\CompetenciesController::class, 'save']);
+
+    // Cursos & Zona de Estudo
+    $r->get('/courses', [\App\Controllers\Supervisor\CoursesController::class, 'index']);
+    $r->get('/courses/create', [\App\Controllers\Supervisor\CoursesController::class, 'create']);
+    $r->post('/courses/store', [\App\Controllers\Supervisor\CoursesController::class, 'store']);
+    $r->get('/courses/{id}/edit', [\App\Controllers\Supervisor\CoursesController::class, 'edit']);
+    $r->post('/courses/{id}/update', [\App\Controllers\Supervisor\CoursesController::class, 'update']);
+    $r->post('/courses/{id}/delete', [\App\Controllers\Supervisor\CoursesController::class, 'delete']);
+    $r->post('/courses/{id}/modules/add', [\App\Controllers\Supervisor\CoursesController::class, 'addModule']);
+    $r->post('/courses/modules/{id}/delete', [\App\Controllers\Supervisor\CoursesController::class, 'deleteModule']);
+    $r->post('/courses/modules/{id}/lessons/add', [\App\Controllers\Supervisor\CoursesController::class, 'addLesson']);
+    $r->post('/courses/lessons/{id}/delete', [\App\Controllers\Supervisor\CoursesController::class, 'deleteLesson']);
+    $r->post('/courses/lessons/{id}/contents/add', [\App\Controllers\Supervisor\CoursesController::class, 'addContent']);
+    $r->post('/courses/contents/{id}/delete', [\App\Controllers\Supervisor\CoursesController::class, 'deleteContent']);
+
+    // Dúvidas dos Alunos
+    $r->get('/doubts', [\App\Controllers\Supervisor\DoubtsController::class, 'index']);
+    $r->post('/doubts/{id}/answer', [\App\Controllers\Supervisor\DoubtsController::class, 'answer']);
+
+    // Detalhes dos Estagiários (atrasos e informações)
+    $r->get('/interns', [\App\Controllers\Supervisor\InternsController::class, 'index']);
+    $r->get('/interns/{id}', [\App\Controllers\Supervisor\InternsController::class, 'show']);
 });
 
 // Intern Portal Routes (Role: intern, super_admin)

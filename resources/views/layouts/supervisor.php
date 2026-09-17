@@ -25,6 +25,9 @@
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/dashboard') ? 'active' : '' ?>" href="/supervisor/dashboard">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/interns') ? 'active' : '' ?>" href="/supervisor/interns">
+                    <i class="bi bi-people-fill"></i> Meus Estagiários
+                </a>
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/tasks') ? 'active' : '' ?>" href="/supervisor/tasks">
                     <i class="bi bi-list-task"></i> Gestão de Tarefas
                 </a>
@@ -33,8 +36,21 @@
                 </a>
             </nav>
 
+            <div class="nav-heading mt-3">Academia</div>
+            <nav class="nav flex-column">
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/courses') ? 'active' : '' ?>" href="/supervisor/courses">
+                    <i class="bi bi-book-half"></i> Cursos & Zona de Estudo
+                </a>
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/doubts') ? 'active' : '' ?>" href="/supervisor/doubts">
+                    <i class="bi bi-chat-dots-fill"></i> Dúvidas dos Alunos
+                </a>
+            </nav>
+
             <div class="nav-heading mt-3">Conta</div>
             <nav class="nav flex-column">
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/notifications') ? 'active' : '' ?>" href="/notifications">
+                    <i class="bi bi-bell-fill"></i> Notificações
+                </a>
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/profile') && !str_contains($_SERVER['REQUEST_URI'] ?? '', 'privacy') ? 'active' : '' ?>" href="/profile">
                     <i class="bi bi-person-circle"></i> Meu Perfil
                 </a>
