@@ -1,3 +1,4 @@
+<?php $basePath = !empty($adminContext) ? '/admin' : '/supervisor'; ?>
 <div class="row g-4">
     <!-- Task & Submission Details -->
     <div class="col-lg-7">
@@ -89,7 +90,7 @@
                     <?php endforeach; ?>
                 </div>
 
-                <form action="/supervisor/tasks/review/<?= $assignment['id'] ?>/comment" method="POST">
+                <form action="<?= $basePath ?>/tasks/review/<?= $assignment['id'] ?>/comment" method="POST">
                     <?= \App\Helpers\csrf_field() ?>
                     <div class="input-group">
                         <input type="text" name="comment" class="form-control form-control-sm" placeholder="Escrever comentário para o estagiário..." required>
@@ -109,7 +110,7 @@
                 </h5>
             </div>
             <div class="card-body p-4">
-                <form action="/supervisor/tasks/review/<?= $assignment['id'] ?>/evaluate" method="POST">
+                <form action="<?= $basePath ?>/tasks/review/<?= $assignment['id'] ?>/evaluate" method="POST">
                     <?= \App\Helpers\csrf_field() ?>
 
                     <div class="mb-3">

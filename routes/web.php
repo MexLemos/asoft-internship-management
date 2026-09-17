@@ -142,6 +142,15 @@ $router->group([
     $r->get('/settings', [SettingsController::class, 'index']);
     $r->post('/settings/update', [SettingsController::class, 'update']);
     $r->get('/audit', [AuditController::class, 'index']);
+
+    // Tasks Management
+    $r->get('/tasks', [\App\Controllers\Admin\TasksController::class, 'index']);
+    $r->get('/tasks/create', [\App\Controllers\Admin\TasksController::class, 'create']);
+    $r->post('/tasks/store', [\App\Controllers\Admin\TasksController::class, 'store']);
+    $r->post('/tasks/assign', [\App\Controllers\Admin\TasksController::class, 'assign']);
+    $r->get('/tasks/review/{id}', [\App\Controllers\Admin\TasksController::class, 'review']);
+    $r->post('/tasks/review/{id}/evaluate', [\App\Controllers\Admin\TasksController::class, 'submitEvaluation']);
+    $r->post('/tasks/review/{id}/comment', [\App\Controllers\Admin\TasksController::class, 'addComment']);
 });
 
 // Supervisor Portal Routes (Role: supervisor, super_admin, admin)

@@ -206,7 +206,7 @@
                                     <?php endif; ?>
                                 </td>
                                 <td class="text-end">
-                                    <a href="/admin/tasks" class="btn btn-light btn-sm border">
+                                    <a href="/admin/tasks/review/<?= $rpt['id'] ?>" class="btn btn-light btn-sm border" title="Avaliar / Ver Submissão">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 </td>

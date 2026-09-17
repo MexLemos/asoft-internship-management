@@ -52,7 +52,7 @@
             <!-- 3. Operação & Avaliação -->
             <div class="nav-heading">Operação & Avaliação</div>
             <nav class="nav flex-column">
-                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/tasks') ? 'active' : '' ?>" href="/supervisor/tasks">
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/tasks') ? 'active' : '' ?>" href="/admin/tasks">
                     <i class="bi bi-list-task"></i> Gestão de Tarefas
                 </a>
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/competencies') ? 'active' : '' ?>" href="/supervisor/competencies">

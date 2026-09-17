@@ -1,3 +1,4 @@
+<?php $basePath = !empty($adminContext) ? '/admin' : '/supervisor'; ?>
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
     <div>
         <h4 class="fw-bold mb-1">Tarefas & Atividades Práticas</h4>
@@ -7,7 +8,7 @@
         <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalAssign">
             <i class="bi bi-person-check me-1"></i> Atribuir Tarefa
         </button>
-        <a href="/supervisor/tasks/create" class="btn btn-primary">
+        <a href="<?= $basePath ?>/tasks/create" class="btn btn-primary">
             <i class="bi bi-plus-lg me-1"></i> Nova Tarefa
         </a>
     </div>
@@ -63,7 +64,7 @@
 <div class="modal fade" id="modalAssign" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="/supervisor/tasks/assign" method="POST" id="formAssignTask" onsubmit="return confirmBulkAssign()">
+            <form action="<?= $basePath ?>/tasks/assign" method="POST" id="formAssignTask" onsubmit="return confirmBulkAssign()">
                 <?= \App\Helpers\csrf_field() ?>
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">

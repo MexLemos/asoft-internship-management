@@ -1,3 +1,4 @@
+<?php $basePath = !empty($adminContext) ? '/admin' : '/supervisor'; ?>
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card shadow-sm border-0">
@@ -7,7 +8,7 @@
                 </h5>
             </div>
             <div class="card-body p-4">
-                <form action="/supervisor/tasks/store" method="POST">
+                <form action="<?= $basePath ?>/tasks/store" method="POST">
                     <?= \App\Helpers\csrf_field() ?>
 
                     <div class="row g-3">
@@ -64,7 +65,7 @@
                     </div>
 
                     <div class="d-flex justify-content-end gap-2 pt-4 mt-4 border-top">
-                        <a href="/supervisor/tasks" class="btn btn-light">Cancelar</a>
+                        <a href="<?= $basePath ?>/tasks" class="btn btn-light">Cancelar</a>
                         <button type="submit" class="btn btn-primary px-4 fw-bold">Publicar Tarefa</button>
                     </div>
                 </form>
