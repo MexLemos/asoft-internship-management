@@ -120,7 +120,7 @@ class InternsController extends Controller
             $stmtUser->execute([
                 $data['full_name'],
                 $data['email'],
-                $data['phone'] ?? null,
+                !empty($data['phone']) ? trim((string)$data['phone']) : null,
                 $username,
                 $passwordHash
             ]);

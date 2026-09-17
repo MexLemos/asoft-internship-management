@@ -236,6 +236,32 @@ class Intern
         $course = $data['course'] ?? 'Técnico de Informática';
         $customCourse = ($course === 'Outro') ? ($data['custom_course_name'] ?? null) : null;
 
+        // Ensure supervisor_id is either a valid existing user ID or null
+        $supervisorId = !empty($data['supervisor_id']) && (int)$data['supervisor_id'] > 0 
+            ? (int)$data['supervisor_id'] 
+            : null;
+        if ($supervisorId !== null) {
+            $chk = $pdo->prepare("SELECT id FROM users WHERE id = ?");
+            $chk->execute([$supervisorId]);
+            if (!$chk->fetchColumn()) {
+                $supervisorId = null;
+            }
+        }
+
+        // Sanitize nullable dates and strings (prevent empty string errors on DATE/FK columns)
+        $birthDate = !empty($data['birth_date']) ? $data['birth_date'] : null;
+        $biIssueDate = !empty($data['bi_issue_date']) ? $data['bi_issue_date'] : null;
+        $biExpiryDate = !empty($data['bi_expiry_date']) ? $data['bi_expiry_date'] : null;
+        $socialName = !empty($data['social_name']) ? trim((string)$data['social_name']) : null;
+        $photo = !empty($data['photo']) ? trim((string)$data['photo']) : null;
+        $phone = !empty($data['phone']) ? trim((string)$data['phone']) : null;
+        $emergencyPhone = !empty($data['emergency_phone']) ? trim((string)$data['emergency_phone']) : null;
+        $address = !empty($data['address']) ? trim((string)$data['address']) : null;
+        $educationArea = !empty($data['education_area']) ? trim((string)$data['education_area']) : null;
+        $academicYear = !empty($data['academic_year']) ? trim((string)$data['academic_year']) : null;
+        $studentNumber = !empty($data['student_number']) ? trim((string)$data['student_number']) : null;
+        $academicAdvisor = !empty($data['academic_advisor']) ? trim((string)$data['academic_advisor']) : null;
+
         $stmt = $pdo->prepare("
             INSERT INTO interns (
                 user_id, institution_id, supervisor_id, internship_code, full_name, social_name,
@@ -253,28 +279,28 @@ class Intern
         $stmt->execute([
             $data['user_id'],
             $data['institution_id'],
-            $data['supervisor_id'] ?? null,
+            $supervisorId,
             $data['internship_code'],
             $data['full_name'],
-            $data['social_name'] ?? null,
-            $data['birth_date'] ?? null,
+            $socialName,
+            $birthDate,
             $data['gender'] ?? 'M',
             $data['bi_number'],
-            $data['bi_issue_date'] ?? null,
-            $data['bi_expiry_date'] ?? null,
-            $data['photo'] ?? null,
-            $data['phone'] ?? null,
-            $data['emergency_phone'] ?? null,
-            $data['address'] ?? null,
+            $biIssueDate,
+            $biExpiryDate,
+            $photo,
+            $phone,
+            $emergencyPhone,
+            $address,
             $data['city'] ?? 'Luanda',
             $data['province'] ?? 'Luanda',
             $course,
             $customCourse,
             $data['formation_level'] ?? '13ª',
-            $data['education_area'] ?? null,
-            $data['academic_year'] ?? null,
-            $data['student_number'] ?? null,
-            $data['academic_advisor'] ?? null,
+            $educationArea,
+            $academicYear,
+            $studentNumber,
+            $academicAdvisor,
             $data['internship_area'] ?? 'Geral',
             $startDate,
             $endDate,
