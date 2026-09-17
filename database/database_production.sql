@@ -802,6 +802,34 @@ WHERE i.deleted_at IS NULL;
 
 INSERT IGNORE INTO `migrations` (`migration`, `batch`) VALUES ('010_sync_institution_users.sql', 1);
 
+-- --------------------------------------------------------
+-- Migration: 011_add_must_change_password_to_users.sql
+-- --------------------------------------------------------
+-- Migration: 011_add_must_change_password_to_users.sql
+-- Adds the must_change_password flag that allows forcing a password change on first login.
+
+ALTER TABLE users
+    ADD COLUMN must_change_password TINYINT(1) UNSIGNED NOT NULL DEFAULT 0
+    AFTER password_hash;
+
+INSERT IGNORE INTO `migrations` (`migration`, `batch`) VALUES ('011_add_must_change_password_to_users.sql', 1);
+
+-- --------------------------------------------------------
+-- Migration: 012_add_missing_columns_users_and_interns.sql
+-- --------------------------------------------------------
+-- Migration: 012_add_missing_columns_users_and_interns.sql
+-- Adds columns to interns table required for registration and portfolio customization.
+
+ALTER TABLE interns
+    ADD COLUMN custom_course_name VARCHAR(150) NULL AFTER course,
+    ADD COLUMN formation_level VARCHAR(50) NULL DEFAULT '13ª' AFTER custom_course_name,
+    ADD COLUMN portfolio_html MEDIUMTEXT NULL,
+    ADD COLUMN portfolio_css MEDIUMTEXT NULL,
+    ADD COLUMN portfolio_js MEDIUMTEXT NULL,
+    ADD COLUMN portfolio_frozen TINYINT(1) UNSIGNED NOT NULL DEFAULT 0;
+
+INSERT IGNORE INTO `migrations` (`migration`, `batch`) VALUES ('012_add_missing_columns_users_and_interns.sql', 1);
+
 
 -- ========================================================
 -- Dados Iniciais e Contas Padrao para Producao (AIMS)
