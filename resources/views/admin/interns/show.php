@@ -75,10 +75,14 @@
                     <?php foreach ($scoreData['components'] as $name => $comp): ?>
                         <div class="col-md-4 col-sm-6">
                             <div class="p-3 border rounded-3 bg-light">
-                                <div class="text-muted small fw-semibold text-capitalize"><?= $name ?> (Peso <?= $comp['weight'] ?>%)</div>
-                                <div class="fs-4 fw-bold text-dark mt-1"><?= $comp['score'] ?><span class="fs-6 text-muted fw-normal">/100</span></div>
+                                <div class="text-muted small fw-semibold"><?= \App\Helpers\e($comp['label'] ?? ucfirst($name)) ?> (Peso <?= $comp['weight'] ?>%)</div>
+                                <div class="fs-4 fw-bold text-dark mt-1"><?= number_format((float)$comp['score'], 1) ?><span class="fs-6 text-muted fw-normal">/100</span></div>
                                 <div class="progress mt-2" style="height: 6px;">
-                                    <div class="progress-bar bg-primary" role="progressbar" style="width: <?= min(100, $comp['score']) ?>%"></div>
+                                    <?php
+                                        $sc = (float)$comp['score'];
+                                        $barCls = $sc >= 80 ? 'bg-success' : ($sc >= 60 ? 'bg-primary' : ($sc > 0 ? 'bg-warning' : 'bg-secondary'));
+                                    ?>
+                                    <div class="progress-bar <?= $barCls ?>" role="progressbar" style="width: <?= min(100, max(0, $sc)) ?>%"></div>
                                 </div>
                             </div>
                         </div>

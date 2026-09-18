@@ -32,13 +32,13 @@
     </div>
     <div class="col-6 col-md-3">
         <?php
-            $risk = $intern['risk_level'] ?? 'low';
-            $riskColors = ['low' => 'success', 'medium' => 'warning', 'high' => 'danger'];
-            $riskLabels = ['low' => 'Baixo Risco', 'medium' => 'Risco Médio', 'high' => 'Alto Risco'];
+            $risk = $intern['risk_level'] ?? 'normal';
+            $riskColors = ['normal' => 'success', 'low' => 'success', 'attention' => 'warning', 'medium' => 'warning', 'risk' => 'danger', 'high' => 'danger'];
+            $riskLabels = ['normal' => 'Regular', 'low' => 'Baixo Risco', 'attention' => 'Atenção Necessária', 'medium' => 'Risco Médio', 'risk' => 'Alto Risco', 'high' => 'Alto Risco'];
         ?>
         <div class="card border-0 shadow-sm text-center p-3">
             <div class="fs-2 fw-bold text-<?= $riskColors[$risk] ?? 'secondary' ?>">
-                <i class="bi bi-shield-<?= $risk === 'high' ? 'exclamation' : ($risk === 'medium' ? 'half' : 'check') ?>"></i>
+                <i class="bi bi-shield-<?= in_array($risk, ['risk', 'high']) ? 'exclamation' : (in_array($risk, ['attention', 'medium']) ? 'half' : 'check') ?>"></i>
             </div>
             <div class="small text-muted"><?= $riskLabels[$risk] ?? ucfirst($risk) ?></div>
         </div>
@@ -180,7 +180,7 @@
                             'final_eval'   => 'Avaliação Final',
                         ];
                         $pct = (float)($data['weighted_score'] ?? $data['score'] ?? 0);
-                        $barColor = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : 'danger');
+                        $barColor = $pct >= 80 ? 'success' : ($pct >= 60 ? 'warning' : ($pct > 0 ? 'danger' : 'secondary'));
                     ?>
                     <div class="mb-2">
                         <div class="d-flex justify-content-between small mb-1">
@@ -188,7 +188,7 @@
                             <span class="fw-semibold text-<?= $barColor ?>"><?= number_format($pct, 1) ?>%</span>
                         </div>
                         <div class="progress" style="height:8px;">
-                            <div class="progress-bar bg-<?= $barColor ?>" style="width:<?= min(100, $pct) ?>%"></div>
+                            <div class="progress-bar bg-<?= $barColor ?>" style="width:<?= min(100, max(0, $pct)) ?>%"></div>
                         </div>
                     </div>
                 <?php endforeach; ?>

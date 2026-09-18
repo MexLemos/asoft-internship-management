@@ -65,8 +65,22 @@
         <div class="stat-card">
             <div>
                 <div class="text-muted small fw-semibold">Nota Ponderada</div>
-                <div class="fs-4 fw-bold text-success"><?= number_format((float)$intern['overall_score'], 1) ?> <span class="fs-6 text-muted fw-normal">/ 100</span></div>
-                <div class="small text-success mt-1 fw-semibold">Aproveitamento Excelente</div>
+                <?php
+                    $ovScore = (float)($intern['overall_score'] ?? 0);
+                    $scoreColor = $ovScore >= 80 ? 'text-success' : ($ovScore >= 60 ? 'text-primary' : ($ovScore > 0 ? 'text-warning' : 'text-secondary'));
+                ?>
+                <div class="fs-4 fw-bold <?= $scoreColor ?>"><?= number_format($ovScore, 1) ?> <span class="fs-6 text-muted fw-normal">/ 100</span></div>
+                <div class="small mt-1 fw-semibold <?= $scoreColor ?>">
+                    <?php if ($ovScore >= 80): ?>
+                        Aproveitamento Excelente
+                    <?php elseif ($ovScore >= 60): ?>
+                        Aproveitamento Satisfatório
+                    <?php elseif ($ovScore > 0): ?>
+                        Necessita de Atenção
+                    <?php else: ?>
+                        Aguardando Atividades
+                    <?php endif; ?>
+                </div>
             </div>
             <div class="icon-box bg-warning bg-opacity-10 text-warning">
                 <i class="bi bi-trophy-fill"></i>
