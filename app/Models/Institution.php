@@ -32,10 +32,52 @@ class Institution
     public static function findById(int $id): ?array
     {
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare("SELECT * FROM institutions WHERE id = ? AND deleted_at IS NULL LIMIT 1");
+        $stmt = $pdo->prepare("
+            SELECT i.*, 
+                   COUNT(DISTINCT intn.id) as total_interns,
+                   u.id as institution_user_id,
+                   u.username as institution_username,
+                   u.email as institution_user_email,
+                   u.status as user_status
+            FROM institutions i
+            LEFT JOIN interns intn ON intn.institution_id = i.id AND intn.deleted_at IS NULL
+            LEFT JOIN institution_users iu ON iu.institution_id = i.id
+            LEFT JOIN users u ON u.id = iu.user_id AND u.deleted_at IS NULL
+            WHERE i.id = ? AND i.deleted_at IS NULL
+            GROUP BY i.id
+            LIMIT 1
+        ");
         $stmt->execute([$id]);
         $row = $stmt->fetch();
         return $row ?: null;
+    }
+
+    public static function toggleStatus(int $id): string
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("SELECT status FROM institutions WHERE id = ?");
+        $stmt->execute([$id]);
+        $curr = $stmt->fetchColumn();
+        $newStatus = ($curr === 'active') ? 'inactive' : 'active';
+
+        $upd = $pdo->prepare("UPDATE institutions SET status = ? WHERE id = ?");
+        $upd->execute([$newStatus, $id]);
+        return $newStatus;
+    }
+
+    public static function getInternsByInstitution(int $institutionId): array
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("
+            SELECT i.*, u.email as user_email, sup.name as supervisor_name
+            FROM interns i
+            INNER JOIN users u ON u.id = i.user_id
+            LEFT JOIN users sup ON sup.id = i.supervisor_id
+            WHERE i.institution_id = ? AND i.deleted_at IS NULL
+            ORDER BY i.full_name ASC
+        ");
+        $stmt->execute([$institutionId]);
+        return $stmt->fetchAll();
     }
 
     public static function create(array $data): int

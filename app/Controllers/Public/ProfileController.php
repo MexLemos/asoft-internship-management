@@ -70,22 +70,57 @@ class ProfileController extends Controller
             }
             move_uploaded_file($_FILES['photo']['tmp_name'], $targetDir . $photoName);
 
-            $stmtPhoto = $pdo->prepare("UPDATE users SET profile_photo = ? WHERE id = ?");
-            $stmtPhoto->execute([$photoName, $userId]);
+            try {
+                $stmtPhoto = $pdo->prepare("UPDATE users SET profile_photo = ?, avatar = ? WHERE id = ?");
+                $stmtPhoto->execute([$photoName, $photoName, $userId]);
+            } catch (\Throwable $e) {
+                try {
+                    $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo VARCHAR(255) NULL AFTER avatar");
+                    $stmtPhoto = $pdo->prepare("UPDATE users SET profile_photo = ?, avatar = ? WHERE id = ?");
+                    $stmtPhoto->execute([$photoName, $photoName, $userId]);
+                } catch (\Throwable $e2) {
+                    try {
+                        $stmtPhoto = $pdo->prepare("UPDATE users SET avatar = ? WHERE id = ?");
+                        $stmtPhoto->execute([$photoName, $userId]);
+                    } catch (\Throwable $e3) {}
+                }
+            }
         }
 
-        $stmt = $pdo->prepare("
-            UPDATE users 
-            SET name = ?, phone = ?, linkedin_url = ?, github_url = ?
-            WHERE id = ?
-        ");
-        $stmt->execute([$name, $phone, $linkedin, $github, $userId]);
+        try {
+            $stmt = $pdo->prepare("
+                UPDATE users 
+                SET name = ?, phone = ?, linkedin_url = ?, github_url = ?
+                WHERE id = ?
+            ");
+            $stmt->execute([$name, $phone, $linkedin, $github, $userId]);
+        } catch (\Throwable $e) {
+            try {
+                $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS linkedin_url VARCHAR(255) NULL AFTER status");
+                $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS github_url VARCHAR(255) NULL AFTER linkedin_url");
+                $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo VARCHAR(255) NULL AFTER avatar");
+                $stmt = $pdo->prepare("
+                    UPDATE users 
+                    SET name = ?, phone = ?, linkedin_url = ?, github_url = ?
+                    WHERE id = ?
+                ");
+                $stmt->execute([$name, $phone, $linkedin, $github, $userId]);
+            } catch (\Throwable $e2) {
+                $stmt = $pdo->prepare("UPDATE users SET name = ?, phone = ? WHERE id = ?");
+                $stmt->execute([$name, $phone, $userId]);
+            }
+        }
 
-        // If intern, also update intern record phone
+        // If intern, also update intern record phone and photo
         $intern = Intern::findByUserId($userId);
         if ($intern) {
-            $stmtIntern = $pdo->prepare("UPDATE interns SET full_name = ?, phone = ? WHERE id = ?");
-            $stmtIntern->execute([$name, $phone, (int)$intern['id']]);
+            if ($photoName !== null) {
+                $stmtIntern = $pdo->prepare("UPDATE interns SET full_name = ?, phone = ?, photo = ? WHERE id = ?");
+                $stmtIntern->execute([$name, $phone, $photoName, (int)$intern['id']]);
+            } else {
+                $stmtIntern = $pdo->prepare("UPDATE interns SET full_name = ?, phone = ? WHERE id = ?");
+                $stmtIntern->execute([$name, $phone, (int)$intern['id']]);
+            }
         }
 
         // Update session

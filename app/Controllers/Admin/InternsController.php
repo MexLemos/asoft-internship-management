@@ -210,4 +210,75 @@ class InternsController extends Controller
         Session::flash('success', 'Declaração e Certificado gerados com sucesso com QR Code!');
         return $this->redirect("/admin/interns/{$internId}");
     }
+
+    public function edit(Request $request, string $id): Response
+    {
+        $internId = (int)$id;
+        $intern = Intern::findById($internId);
+        if (!$intern) {
+            Session::flash('error', 'Estagiário não encontrado.');
+            return $this->redirect('/admin/interns');
+        }
+
+        $institutions = Institution::all();
+        $pdo = Database::getConnection();
+        $supervisors = $pdo->query("
+            SELECT u.id, u.name 
+            FROM users u
+            INNER JOIN user_roles ur ON ur.user_id = u.id
+            INNER JOIN roles r ON r.id = ur.role_id
+            WHERE r.name IN ('supervisor', 'admin', 'super_admin') AND u.deleted_at IS NULL
+        ")->fetchAll();
+
+        return $this->render('admin.interns.edit', [
+            'title' => 'Editar Estagiário: ' . $intern['full_name'],
+            'intern' => $intern,
+            'institutions' => $institutions,
+            'supervisors' => $supervisors
+        ], 'admin');
+    }
+
+    public function update(Request $request, string $id): Response
+    {
+        $internId = (int)$id;
+        $intern = Intern::findById($internId);
+        if (!$intern) {
+            Session::flash('error', 'Estagiário não encontrado.');
+            return $this->redirect('/admin/interns');
+        }
+
+        $data = $request->all();
+        $errors = $this->validate($data, [
+            'full_name' => 'required|min:3',
+            'email' => 'required|email',
+            'bi_number' => 'required',
+            'institution_id' => 'required|numeric',
+            'course' => 'required',
+            'start_date' => 'required'
+        ]);
+
+        if (!empty($errors)) {
+            Session::flash('error', implode(' ', $errors));
+            return $this->redirect("/admin/interns/{$internId}/edit");
+        }
+
+        if (empty($data['end_date'])) {
+            $data['end_date'] = Intern::calculateEndDate($data['start_date']);
+        }
+
+        try {
+            Intern::update($internId, $data);
+
+            AuditLog::log('intern_update', 'interns', $internId, null, [
+                'name' => $data['full_name'],
+                'code' => $intern['internship_code']
+            ], 'success');
+
+            Session::flash('success', 'Dados do estagiário atualizados com sucesso!');
+            return $this->redirect("/admin/interns/{$internId}");
+        } catch (\Throwable $e) {
+            Session::flash('error', 'Erro ao atualizar estagiário: ' . $e->getMessage());
+            return $this->redirect("/admin/interns/{$internId}/edit");
+        }
+    }
 }

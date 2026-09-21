@@ -52,9 +52,12 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(150) NOT NULL UNIQUE,
     phone VARCHAR(30) NULL,
     avatar VARCHAR(255) NULL,
+    profile_photo VARCHAR(255) NULL,
     username VARCHAR(60) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     status ENUM('active', 'inactive', 'blocked') DEFAULT 'active',
+    linkedin_url VARCHAR(255) NULL,
+    github_url VARCHAR(255) NULL,
     login_attempts INT UNSIGNED DEFAULT 0,
     locked_until TIMESTAMP NULL,
     last_login_at TIMESTAMP NULL,
@@ -951,4 +954,9 @@ INSERT IGNORE INTO `user_roles` (`user_id`, `role_id`) VALUES
 
 SET FOREIGN_KEY_CHECKS = 1;
 
-SET FOREIGN_KEY_CHECKS = 1;
+-- Migrations 014 & 015: Profile fields & message attachments
+ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo VARCHAR(255) NULL AFTER avatar;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS linkedin_url VARCHAR(255) NULL AFTER status;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS github_url VARCHAR(255) NULL AFTER linkedin_url;
+ALTER TABLE institution_messages ADD COLUMN IF NOT EXISTS attachment_path VARCHAR(255) NULL AFTER message;
+ALTER TABLE institution_messages ADD COLUMN IF NOT EXISTS attachment_name VARCHAR(255) NULL AFTER attachment_path;

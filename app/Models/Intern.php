@@ -335,4 +335,133 @@ class Intern
 
         return $internId;
     }
+
+    public static function update(int $internId, array $data): bool
+    {
+        $pdo = Database::getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $intern = self::findById($internId);
+            if (!$intern) {
+                throw new \RuntimeException("Estagiário não encontrado.");
+            }
+
+            $userId = (int)$intern['user_id'];
+
+            // 1. Update User info (name, email, phone)
+            if (!empty($data['email'])) {
+                $stmtUser = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?");
+                $stmtUser->execute([
+                    $data['full_name'],
+                    $data['email'],
+                    !empty($data['phone']) ? trim((string)$data['phone']) : null,
+                    $userId
+                ]);
+            }
+
+            // 2. Sanitize and prepare intern fields
+            $course = $data['course'] ?? 'Técnico de Informática';
+            $customCourse = ($course === 'Outro') ? ($data['custom_course_name'] ?? null) : null;
+
+            $supervisorId = !empty($data['supervisor_id']) && (int)$data['supervisor_id'] > 0 
+                ? (int)$data['supervisor_id'] 
+                : null;
+            if ($supervisorId !== null) {
+                $chk = $pdo->prepare("SELECT id FROM users WHERE id = ?");
+                $chk->execute([$supervisorId]);
+                if (!$chk->fetchColumn()) {
+                    $supervisorId = null;
+                }
+            }
+
+            $startDate = !empty($data['start_date']) ? $data['start_date'] : $intern['start_date'];
+            $endDate = !empty($data['end_date']) ? $data['end_date'] : self::calculateEndDate($startDate);
+
+            $stmtIntern = $pdo->prepare("
+                UPDATE interns SET
+                    institution_id = ?,
+                    supervisor_id = ?,
+                    full_name = ?,
+                    social_name = ?,
+                    birth_date = ?,
+                    gender = ?,
+                    bi_number = ?,
+                    phone = ?,
+                    course = ?,
+                    custom_course_name = ?,
+                    formation_level = ?,
+                    student_number = ?,
+                    internship_area = ?,
+                    start_date = ?,
+                    end_date = ?,
+                    status = ?
+                WHERE id = ?
+            ");
+            $stmtIntern->execute([
+                $data['institution_id'] ?? $intern['institution_id'],
+                $supervisorId,
+                $data['full_name'],
+                !empty($data['social_name']) ? trim((string)$data['social_name']) : null,
+                !empty($data['birth_date']) ? $data['birth_date'] : null,
+                $data['gender'] ?? 'M',
+                $data['bi_number'],
+                !empty($data['phone']) ? trim((string)$data['phone']) : null,
+                $course,
+                $customCourse,
+                $data['formation_level'] ?? '13ª',
+                !empty($data['student_number']) ? trim((string)$data['student_number']) : null,
+                $data['internship_area'] ?? 'Geral',
+                $startDate,
+                $endDate,
+                $data['status'] ?? $intern['status'],
+                $internId
+            ]);
+
+            // 3. Update or Insert Schedule
+            $expectedStart = $data['expected_start_time'] ?? '08:00:00';
+            $expectedEnd = $data['expected_end_time'] ?? '12:00:00';
+            $requiredHours = $data['total_required_hours'] ?? 300.00;
+
+            $stmtCheckSched = $pdo->prepare("SELECT id FROM intern_schedules WHERE intern_id = ?");
+            $stmtCheckSched->execute([$internId]);
+            $schedId = $stmtCheckSched->fetchColumn();
+
+            if ($schedId) {
+                $stmtUpdSched = $pdo->prepare("
+                    UPDATE intern_schedules 
+                    SET expected_start_time = ?, expected_end_time = ?, total_required_hours = ?
+                    WHERE id = ?
+                ");
+                $stmtUpdSched->execute([$expectedStart, $expectedEnd, $requiredHours, (int)$schedId]);
+            } else {
+                $stmtInsSched = $pdo->prepare("
+                    INSERT INTO intern_schedules (intern_id, expected_start_time, expected_end_time, tolerance_minutes, daily_hours, total_required_hours)
+                    VALUES (?, ?, ?, 15, 4.00, ?)
+                ");
+                $stmtInsSched->execute([$internId, $expectedStart, $expectedEnd, $requiredHours]);
+                $schedId = (int)$pdo->lastInsertId();
+            }
+
+            // 4. Update Schedule Days
+            if (isset($data['days']) || isset($data['active_days'])) {
+                $activeDays = array_map('intval', (array)($data['days'] ?? $data['active_days'] ?? []));
+                for ($d = 1; $d <= 7; $d++) {
+                    $isActive = in_array($d, $activeDays, true) ? 1 : 0;
+                    $stmtDay = $pdo->prepare("
+                        INSERT INTO intern_schedule_days (intern_schedule_id, day_of_week, is_active)
+                        VALUES (?, ?, ?)
+                        ON DUPLICATE KEY UPDATE is_active = VALUES(is_active)
+                    ");
+                    $stmtDay->execute([(int)$schedId, $d, $isActive]);
+                }
+            }
+
+            $pdo->commit();
+            return true;
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+    }
 }

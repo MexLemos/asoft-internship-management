@@ -12,11 +12,77 @@ use App\Core\Session;
 use App\Models\AuditLog;
 use App\Models\Institution;
 use App\Models\Notification;
+use App\Services\EmailService;
 
 class MessagesController extends Controller
 {
+    private function ensureAttachmentColumns(): void
+    {
+        try {
+            $pdo = Database::getConnection();
+            $pdo->query("SELECT attachment_path FROM institution_messages LIMIT 1");
+        } catch (\Throwable $e) {
+            try {
+                $pdo = Database::getConnection();
+                $pdo->exec("
+                    ALTER TABLE institution_messages
+                    ADD COLUMN attachment_path VARCHAR(255) NULL AFTER message,
+                    ADD COLUMN attachment_name VARCHAR(255) NULL AFTER attachment_path
+                ");
+            } catch (\Throwable $ignored) {}
+        }
+    }
+
+    private function handleAttachmentUpload(): ?array
+    {
+        if (empty($_FILES['attachment']) || $_FILES['attachment']['error'] === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        $file = $_FILES['attachment'];
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return null;
+        }
+
+        if ($file['size'] > 20 * 1024 * 1024) {
+            return null;
+        }
+
+        $originalName = basename($file['name']);
+        $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+
+        $allowedExts = [
+            'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'ppt', 'pptx',
+            'txt', 'rtf', 'odt', 'ods', 'odp',
+            'zip', 'rar', '7z', 'tar', 'gz',
+            'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'
+        ];
+
+        if (!in_array($ext, $allowedExts, true)) {
+            return null;
+        }
+
+        $targetDir = dirname(__DIR__, 3) . '/public/uploads/messages/';
+        if (!is_dir($targetDir)) {
+            @mkdir($targetDir, 0755, true);
+        }
+
+        $newFileName = bin2hex(random_bytes(16)) . '.' . $ext;
+        $destination = $targetDir . $newFileName;
+
+        if (move_uploaded_file($file['tmp_name'], $destination)) {
+            return [
+                'path' => '/uploads/messages/' . $newFileName,
+                'name' => $originalName
+            ];
+        }
+
+        return null;
+    }
+
     public function index(Request $request): Response
     {
+        $this->ensureAttachmentColumns();
         $sessionUser = Session::get('user');
         $pdo = Database::getConnection();
 
@@ -75,38 +141,75 @@ class MessagesController extends Controller
 
     public function reply(Request $request, string $conversationId): Response
     {
+        $this->ensureAttachmentColumns();
         $convId = (int)$conversationId;
         $sessionUser = Session::get('user');
         $userId = (int)$sessionUser['id'];
         $message = trim((string)$request->input('message', ''));
+        $attachment = $this->handleAttachmentUpload();
 
-        if (empty($message)) {
+        if (empty($message) && !$attachment) {
             return $this->redirect("/admin/messages?conversation={$convId}");
+        }
+
+        if (empty($message) && $attachment) {
+            $message = 'Envio de ficheiro anexo: ' . $attachment['name'];
         }
 
         $pdo = Database::getConnection();
 
         $stmtMsg = $pdo->prepare("
-            INSERT INTO institution_messages (conversation_id, sender_id, message, is_read, created_at)
-            VALUES (?, ?, ?, 0, NOW())
+            INSERT INTO institution_messages (conversation_id, sender_id, message, attachment_path, attachment_name, is_read, created_at)
+            VALUES (?, ?, ?, ?, ?, 0, NOW())
         ");
-        $stmtMsg->execute([$convId, $userId, $message]);
+        $stmtMsg->execute([$convId, $userId, $message, $attachment['path'] ?? null, $attachment['name'] ?? null]);
 
         $stmtUpd = $pdo->prepare("UPDATE institution_conversations SET last_message_at = NOW() WHERE id = ?");
         $stmtUpd->execute([$convId]);
 
-        // Notify Institution creator
-        $stmtConv = $pdo->prepare("SELECT created_by, subject FROM institution_conversations WHERE id = ?");
+        // Notify Institution creator & associated users
+        $stmtConv = $pdo->prepare("
+            SELECT ic.created_by, ic.subject, ic.institution_id, i.name as institution_name
+            FROM institution_conversations ic
+            INNER JOIN institutions i ON i.id = ic.institution_id
+            WHERE ic.id = ?
+        ");
         $stmtConv->execute([$convId]);
         $conv = $stmtConv->fetch();
+
         if ($conv) {
-            Notification::create(
-                (int)$conv['created_by'],
-                'message',
-                'Nova Resposta da Administração Asoftmedia',
-                "A administração respondeu à conversa '{$conv['subject']}': \"{$message}\"",
-                "/institution/messages?conversation={$convId}"
-            );
+            $stmtUsers = $pdo->prepare("
+                SELECT DISTINCT u.id, u.name, u.email
+                FROM users u
+                LEFT JOIN institution_users iu ON iu.user_id = u.id AND iu.institution_id = ?
+                WHERE (iu.institution_id = ? OR u.id = ?) AND u.deleted_at IS NULL AND u.status = 'active'
+            ");
+            $stmtUsers->execute([(int)$conv['institution_id'], (int)$conv['institution_id'], (int)$conv['created_by']]);
+            $recipients = $stmtUsers->fetchAll();
+
+            $notifTitle = "Nova Resposta da Administração Asoftmedia";
+            $notifMsg = "A administração respondeu à conversa '{$conv['subject']}': \"{$message}\"";
+            if ($attachment) {
+                $notifMsg .= " (Anexo: {$attachment['name']})";
+            }
+            $actionUrl = "/institution/messages?conversation={$convId}";
+
+            foreach ($recipients as $recipient) {
+                Notification::create(
+                    (int)$recipient['id'],
+                    'info',
+                    $notifTitle,
+                    $notifMsg,
+                    $actionUrl
+                );
+                EmailService::send(
+                    $recipient['email'],
+                    $recipient['name'],
+                    $notifTitle,
+                    $notifMsg,
+                    $actionUrl
+                );
+            }
         }
 
         return $this->redirect("/admin/messages?conversation={$convId}");

@@ -50,6 +50,7 @@
                         <th>Utilizador / Acesso (Role 5)</th>
                         <th>Estagiários</th>
                         <th>Estado</th>
+                        <th class="text-end pe-4">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -85,7 +86,33 @@
                                 <span class="badge bg-primary fs-6"><?= $inst['total_interns'] ?? 0 ?> alunos</span>
                             </td>
                             <td>
-                                <span class="badge bg-success">Ativo</span>
+                                <?php if (($inst['status'] ?? 'active') === 'active'): ?>
+                                    <span class="badge bg-success">Ativo</span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Inativo</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a href="/admin/institutions/<?= $inst['id'] ?>" class="btn btn-outline-info btn-sm" title="Ver Detalhes">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="/admin/institutions/<?= $inst['id'] ?>/edit" class="btn btn-outline-primary btn-sm" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form action="/admin/institutions/<?= $inst['id'] ?>/toggle-status" method="POST" class="d-inline" onsubmit="return confirm('Pretende <?= ($inst['status'] ?? 'active') === 'active' ? 'desativar' : 'ativar' ?> esta instituição?');">
+                                        <?= \App\Helpers\csrf_field() ?>
+                                        <?php if (($inst['status'] ?? 'active') === 'active'): ?>
+                                            <button type="submit" class="btn btn-outline-warning btn-sm" title="Desativar Instituição">
+                                                <i class="bi bi-pause-circle"></i>
+                                            </button>
+                                        <?php else: ?>
+                                            <button type="submit" class="btn btn-outline-success btn-sm" title="Ativar Instituição">
+                                                <i class="bi bi-play-circle"></i>
+                                            </button>
+                                        <?php endif; ?>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

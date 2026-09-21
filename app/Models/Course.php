@@ -172,6 +172,18 @@ class Course
         return $stmt->execute([$moduleId]);
     }
 
+    public static function updateModule(int $moduleId, string $title, ?string $description = null, int $orderIndex = 1): bool
+    {
+        $pdo = Database::getConnection();
+        $slug = self::generateSlug($title);
+        $stmt = $pdo->prepare("
+            UPDATE modules
+            SET title = ?, slug = ?, description = ?, order_index = ?
+            WHERE id = ?
+        ");
+        return $stmt->execute([$title, $slug, $description, $orderIndex, $moduleId]);
+    }
+
     public static function addLesson(int $moduleId, string $title, int $orderIndex = 1): int
     {
         $pdo = Database::getConnection();
@@ -189,6 +201,18 @@ class Course
         $pdo = Database::getConnection();
         $stmt = $pdo->prepare("DELETE FROM lessons WHERE id = ?");
         return $stmt->execute([$lessonId]);
+    }
+
+    public static function updateLesson(int $lessonId, string $title, int $orderIndex = 1): bool
+    {
+        $pdo = Database::getConnection();
+        $slug = self::generateSlug($title);
+        $stmt = $pdo->prepare("
+            UPDATE lessons
+            SET title = ?, slug = ?, order_index = ?
+            WHERE id = ?
+        ");
+        return $stmt->execute([$title, $slug, $orderIndex, $lessonId]);
     }
 
     public static function addContent(

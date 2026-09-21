@@ -40,10 +40,21 @@ class DashboardController extends Controller
             WHERE due_date < CURDATE() AND status NOT IN ('approved', 'rejected')
         ")->fetchColumn();
 
-        // 4. Attendance Metrics
+        // Reset any mock initial seeder scores (84.00) if no real attendance or tasks exist
+        try {
+            $pdo->exec("
+                UPDATE interns i
+                LEFT JOIN (SELECT intern_id, COUNT(*) as cnt FROM attendance GROUP BY intern_id) a ON a.intern_id = i.id
+                LEFT JOIN (SELECT intern_id, COUNT(*) as cnt FROM task_assignments GROUP BY intern_id) t ON t.intern_id = i.id
+                SET i.overall_score = 0.00, i.risk_level = 'normal'
+                WHERE i.overall_score = 84.00 AND COALESCE(a.cnt, 0) = 0 AND COALESCE(t.cnt, 0) = 0
+            ");
+        } catch (\Throwable $e) {}
+
+        // 4. Attendance Metrics (Strictly Real)
         $totalAttRecords = (int)$pdo->query("SELECT COUNT(*) FROM attendance")->fetchColumn();
         $presentAttRecords = (int)$pdo->query("SELECT COUNT(*) FROM attendance WHERE status IN ('present', 'late')")->fetchColumn();
-        $avgAttendancePct = ($totalAttRecords > 0) ? round(($presentAttRecords / $totalAttRecords) * 100, 1) : 92.5;
+        $avgAttendancePct = ($totalAttRecords > 0) ? round(($presentAttRecords / $totalAttRecords) * 100, 1) : 0.0;
 
         // 5. Courses & Academic Metrics
         $coursesInProgress = (int)$pdo->query("
@@ -53,8 +64,12 @@ class DashboardController extends Controller
             SELECT COUNT(DISTINCT intern_id) FROM lesson_progress WHERE status = 'completed'
         ")->fetchColumn();
 
-        // 6. Overall Performance Grade
-        $avgScore = (float)$pdo->query("SELECT AVG(overall_score) FROM interns WHERE status = 'active'")->fetchColumn() ?: 0.0;
+        // 6. Overall Performance Grade (Strictly Real from Active Interns)
+        $avgScore = (float)$pdo->query("
+            SELECT COALESCE(AVG(overall_score), 0.0) 
+            FROM interns 
+            WHERE status = 'active' AND deleted_at IS NULL AND overall_score > 0
+        ")->fetchColumn();
 
         // 7. Today's GPS Attendance Feed
         $todayAttendance = $pdo->query("

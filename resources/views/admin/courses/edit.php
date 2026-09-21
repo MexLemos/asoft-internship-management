@@ -103,6 +103,9 @@
                                         <strong class="text-dark fs-6"><?= \App\Helpers\e($mod['title']) ?></strong>
                                     </div>
                                     <div class="d-flex align-items-center gap-2">
+                                        <button type="button" class="btn btn-outline-primary btn-sm py-1" onclick="openEditModuleModal(<?= $mod['id'] ?>, '<?= \App\Helpers\e(addslashes($mod['title'])) ?>', '<?= \App\Helpers\e(addslashes($mod['description'] ?? '')) ?>', <?= (int)($mod['order_index'] ?? 1) ?>)" title="Editar Módulo">
+                                            <i class="bi bi-pencil me-1"></i> Editar
+                                        </button>
                                         <button type="button" class="btn btn-outline-success btn-sm py-1" onclick="openAddLessonModal(<?= $mod['id'] ?>, '<?= \App\Helpers\e($mod['title']) ?>')">
                                             <i class="bi bi-plus-circle me-1"></i> Nova Aula
                                         </button>
@@ -129,6 +132,9 @@
                                                             <strong class="text-dark small"><?= \App\Helpers\e($les['title']) ?></strong>
                                                         </div>
                                                         <div class="d-flex gap-1">
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 small" onclick="openEditLessonModal(<?= $les['id'] ?>, '<?= \App\Helpers\e(addslashes($les['title'])) ?>', <?= (int)($les['order_index'] ?? 1) ?>)" title="Editar Aula">
+                                                                <i class="bi bi-pencil"></i>
+                                                            </button>
                                                             <button type="button" class="btn btn-primary btn-sm py-0 px-2 small" onclick="openAddContentModal(<?= $les['id'] ?>, '<?= \App\Helpers\e($les['title']) ?>')">
                                                                 <i class="bi bi-plus-lg"></i> Conteúdo
                                                             </button>
@@ -336,6 +342,79 @@
     </div>
 </div>
 
+<!-- Modal 4: Editar Módulo -->
+<div class="modal fade" id="modalEditModule" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="formEditModule" action="" method="POST">
+                <?= \App\Helpers\csrf_field() ?>
+                <input type="hidden" name="course_id" value="<?= $course['id'] ?>">
+
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-primary">
+                        <i class="bi bi-pencil-square me-2"></i> Editar Módulo
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Título do Módulo *</label>
+                        <input type="text" name="title" id="editModuleTitle" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Descrição / Tópicos</label>
+                        <textarea name="description" id="editModuleDescription" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Ordem de Exibição</label>
+                        <input type="number" name="order_index" id="editModuleOrder" class="form-control" min="1">
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 5: Editar Aula -->
+<div class="modal fade" id="modalEditLesson" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="formEditLesson" action="" method="POST">
+                <?= \App\Helpers\csrf_field() ?>
+                <input type="hidden" name="course_id" value="<?= $course['id'] ?>">
+
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-primary">
+                        <i class="bi bi-pencil-square me-2"></i> Editar Aula
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Título da Aula *</label>
+                        <input type="text" name="title" id="editLessonTitle" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Ordem de Exibição</label>
+                        <input type="number" name="order_index" id="editLessonOrder" class="form-control" min="1">
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 const _basePath = '<?= $basePath ?>';
 function openAddLessonModal(moduleId, moduleTitle) {
@@ -344,10 +423,25 @@ function openAddLessonModal(moduleId, moduleTitle) {
     new bootstrap.Modal(document.getElementById('modalAddLesson')).show();
 }
 
+function openEditModuleModal(moduleId, title, description, order) {
+    document.getElementById('formEditModule').action = `${_basePath}/courses/modules/${moduleId}/update`;
+    document.getElementById('editModuleTitle').value = title;
+    document.getElementById('editModuleDescription').value = description;
+    document.getElementById('editModuleOrder').value = order;
+    new bootstrap.Modal(document.getElementById('modalEditModule')).show();
+}
+
 function openAddContentModal(lessonId, lessonTitle) {
     document.getElementById('formAddContent').action = `${_basePath}/courses/lessons/${lessonId}/contents/add`;
     document.getElementById('contentLessonName').value = lessonTitle;
     new bootstrap.Modal(document.getElementById('modalAddContent')).show();
+}
+
+function openEditLessonModal(lessonId, title, order) {
+    document.getElementById('formEditLesson').action = `${_basePath}/courses/lessons/${lessonId}/update`;
+    document.getElementById('editLessonTitle').value = title;
+    document.getElementById('editLessonOrder').value = order;
+    new bootstrap.Modal(document.getElementById('modalEditLesson')).show();
 }
 
 function handleContentTypeChange(type) {

@@ -66,6 +66,52 @@ class TasksController extends Controller
         return $this->redirect('/supervisor/tasks');
     }
 
+    public function edit(Request $request, string $id): Response
+    {
+        $taskId = (int)$id;
+        $task = Task::findById($taskId);
+        if (!$task) {
+            Session::flash('error', 'Tarefa não encontrada.');
+            return $this->redirect('/supervisor/tasks');
+        }
+
+        $categories = TaskCategory::all();
+        return $this->render('supervisor.tasks.edit', [
+            'title' => 'Editar Tarefa: ' . $task['title'],
+            'task' => $task,
+            'categories' => $categories
+        ], 'supervisor');
+    }
+
+    public function update(Request $request, string $id): Response
+    {
+        $taskId = (int)$id;
+        $task = Task::findById($taskId);
+        if (!$task) {
+            Session::flash('error', 'Tarefa não encontrada.');
+            return $this->redirect('/supervisor/tasks');
+        }
+
+        $data = $request->all();
+        $errors = $this->validate($data, [
+            'title' => 'required|min:5',
+            'description' => 'required',
+            'category_id' => 'required|numeric',
+            'points' => 'required|numeric'
+        ]);
+
+        if (!empty($errors)) {
+            Session::flash('error', implode(' ', $errors));
+            return $this->redirect("/supervisor/tasks/{$taskId}/edit");
+        }
+
+        Task::update($taskId, $data);
+        AuditLog::log('task_update', 'tasks', $taskId, null, ['title' => $data['title']], 'success');
+
+        Session::flash('success', 'Tarefa atualizada com sucesso!');
+        return $this->redirect('/supervisor/tasks');
+    }
+
     public function assign(Request $request): Response
     {
         $data = $request->all();

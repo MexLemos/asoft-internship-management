@@ -45,9 +45,11 @@
         <div class="main-content">
             <header class="top-navbar d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-3">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="history.back()" title="Voltar para a página anterior">
-                        <i class="bi bi-arrow-left me-1"></i> Voltar
-                    </button>
+                    <?php if (!str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/institution/dashboard')): ?>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="history.back()" title="Voltar para a página anterior">
+                            <i class="bi bi-arrow-left me-1"></i> Voltar
+                        </button>
+                    <?php endif; ?>
                     <h5 class="mb-0 text-dark font-weight-bold"><?= \App\Helpers\e($title ?? 'Acompanhamento de Alunos') ?></h5>
                 </div>
                 

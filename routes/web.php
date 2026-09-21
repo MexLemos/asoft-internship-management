@@ -99,6 +99,8 @@ $router->group([
     $r->post('/interns/store', [InternsController::class, 'store']);
     $r->get('/interns/calculate-end-date', [InternsController::class, 'calculateEndDateApi']);
     $r->get('/interns/{id}', [InternsController::class, 'show']);
+    $r->get('/interns/{id}/edit', [InternsController::class, 'edit']);
+    $r->post('/interns/{id}/update', [InternsController::class, 'update']);
     $r->post('/interns/{id}/generate-certificate', [InternsController::class, 'generateCertificate']);
 
     // Institutions Management
@@ -106,6 +108,10 @@ $router->group([
     $r->get('/institutions/create', [InstitutionsController::class, 'create']);
     $r->post('/institutions/store', [InstitutionsController::class, 'store']);
     $r->post('/institutions/sync-users', [InstitutionsController::class, 'syncUsers']);
+    $r->get('/institutions/{id}', [InstitutionsController::class, 'show']);
+    $r->get('/institutions/{id}/edit', [InstitutionsController::class, 'edit']);
+    $r->post('/institutions/{id}/update', [InstitutionsController::class, 'update']);
+    $r->post('/institutions/{id}/toggle-status', [InstitutionsController::class, 'toggleStatus']);
 
     // Employees / Users Management
     $r->get('/users', [UsersController::class, 'index']);
@@ -124,8 +130,10 @@ $router->group([
     $r->post('/courses/{id}/update', [AdminCourses::class, 'update']);
     $r->post('/courses/{id}/delete', [AdminCourses::class, 'delete']);
     $r->post('/courses/{id}/modules/add', [AdminCourses::class, 'addModule']);
+    $r->post('/courses/modules/{id}/update', [AdminCourses::class, 'updateModule']);
     $r->post('/courses/modules/{id}/delete', [AdminCourses::class, 'deleteModule']);
     $r->post('/courses/modules/{id}/lessons/add', [AdminCourses::class, 'addLesson']);
+    $r->post('/courses/lessons/{id}/update', [AdminCourses::class, 'updateLesson']);
     $r->post('/courses/lessons/{id}/delete', [AdminCourses::class, 'deleteLesson']);
     $r->post('/courses/lessons/{id}/contents/add', [AdminCourses::class, 'addContent']);
     $r->post('/courses/contents/{id}/delete', [AdminCourses::class, 'deleteContent']);
@@ -147,6 +155,8 @@ $router->group([
     $r->get('/tasks', [\App\Controllers\Admin\TasksController::class, 'index']);
     $r->get('/tasks/create', [\App\Controllers\Admin\TasksController::class, 'create']);
     $r->post('/tasks/store', [\App\Controllers\Admin\TasksController::class, 'store']);
+    $r->get('/tasks/{id}/edit', [\App\Controllers\Admin\TasksController::class, 'edit']);
+    $r->post('/tasks/{id}/update', [\App\Controllers\Admin\TasksController::class, 'update']);
     $r->post('/tasks/assign', [\App\Controllers\Admin\TasksController::class, 'assign']);
     $r->get('/tasks/review/{id}', [\App\Controllers\Admin\TasksController::class, 'review']);
     $r->post('/tasks/review/{id}/evaluate', [\App\Controllers\Admin\TasksController::class, 'submitEvaluation']);
@@ -164,6 +174,8 @@ $router->group([
     $r->get('/tasks', [\App\Controllers\Supervisor\TasksController::class, 'index']);
     $r->get('/tasks/create', [\App\Controllers\Supervisor\TasksController::class, 'create']);
     $r->post('/tasks/store', [\App\Controllers\Supervisor\TasksController::class, 'store']);
+    $r->get('/tasks/{id}/edit', [\App\Controllers\Supervisor\TasksController::class, 'edit']);
+    $r->post('/tasks/{id}/update', [\App\Controllers\Supervisor\TasksController::class, 'update']);
     $r->post('/tasks/assign', [\App\Controllers\Supervisor\TasksController::class, 'assign']);
     $r->get('/tasks/review/{id}', [\App\Controllers\Supervisor\TasksController::class, 'review']);
     $r->post('/tasks/review/{id}/evaluate', [\App\Controllers\Supervisor\TasksController::class, 'submitEvaluation']);
@@ -182,8 +194,10 @@ $router->group([
     $r->post('/courses/{id}/update', [\App\Controllers\Supervisor\CoursesController::class, 'update']);
     $r->post('/courses/{id}/delete', [\App\Controllers\Supervisor\CoursesController::class, 'delete']);
     $r->post('/courses/{id}/modules/add', [\App\Controllers\Supervisor\CoursesController::class, 'addModule']);
+    $r->post('/courses/modules/{id}/update', [\App\Controllers\Supervisor\CoursesController::class, 'updateModule']);
     $r->post('/courses/modules/{id}/delete', [\App\Controllers\Supervisor\CoursesController::class, 'deleteModule']);
     $r->post('/courses/modules/{id}/lessons/add', [\App\Controllers\Supervisor\CoursesController::class, 'addLesson']);
+    $r->post('/courses/lessons/{id}/update', [\App\Controllers\Supervisor\CoursesController::class, 'updateLesson']);
     $r->post('/courses/lessons/{id}/delete', [\App\Controllers\Supervisor\CoursesController::class, 'deleteLesson']);
     $r->post('/courses/lessons/{id}/contents/add', [\App\Controllers\Supervisor\CoursesController::class, 'addContent']);
     $r->post('/courses/contents/{id}/delete', [\App\Controllers\Supervisor\CoursesController::class, 'deleteContent']);

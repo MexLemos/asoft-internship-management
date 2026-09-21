@@ -125,6 +125,24 @@ class CoursesController extends Controller
         return $this->redirect("/admin/courses/{$courseId}/edit");
     }
 
+    public function updateModule(Request $request, string $moduleId): Response
+    {
+        $mId = (int)$moduleId;
+        $courseId = (int)$request->input('course_id', 1);
+        $title = trim((string)$request->input('title', ''));
+        $description = trim((string)$request->input('description', ''));
+        $order = (int)$request->input('order_index', 1);
+
+        if (empty($title)) {
+            Session::flash('error', 'Informe o título do módulo.');
+            return $this->redirect("/admin/courses/{$courseId}/edit");
+        }
+
+        Course::updateModule($mId, $title, $description, $order);
+        Session::flash('success', 'Módulo atualizado com sucesso!');
+        return $this->redirect("/admin/courses/{$courseId}/edit");
+    }
+
     public function addLesson(Request $request, string $moduleId): Response
     {
         $mId = (int)$moduleId;
@@ -148,6 +166,23 @@ class CoursesController extends Controller
         $courseId = (int)$request->input('course_id', 1);
         Course::deleteLesson($lId);
         Session::flash('success', 'Aula removida com sucesso.');
+        return $this->redirect("/admin/courses/{$courseId}/edit");
+    }
+
+    public function updateLesson(Request $request, string $lessonId): Response
+    {
+        $lId = (int)$lessonId;
+        $courseId = (int)$request->input('course_id', 1);
+        $title = trim((string)$request->input('title', ''));
+        $order = (int)$request->input('order_index', 1);
+
+        if (empty($title)) {
+            Session::flash('error', 'Informe o título da aula.');
+            return $this->redirect("/admin/courses/{$courseId}/edit");
+        }
+
+        Course::updateLesson($lId, $title, $order);
+        Session::flash('success', 'Aula atualizada com sucesso!');
         return $this->redirect("/admin/courses/{$courseId}/edit");
     }
 

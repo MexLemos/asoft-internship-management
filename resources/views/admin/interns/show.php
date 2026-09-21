@@ -1,3 +1,25 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1 small">
+                <li class="breadcrumb-item"><a href="/admin/interns">Estagiários</a></li>
+                <li class="breadcrumb-item active"><?= \App\Helpers\e($intern['full_name']) ?></li>
+            </ol>
+        </nav>
+        <h4 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-person-badge text-primary me-2"></i> Perfil do Estagiário
+        </h4>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/admin/interns/<?= $intern['id'] ?>/edit" class="btn btn-primary btn-sm shadow-sm">
+            <i class="bi bi-pencil-square me-1"></i> Editar Dados do Estagiário
+        </a>
+        <a href="/admin/interns" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Voltar à Lista
+        </a>
+    </div>
+</div>
+
 <div class="row g-4 mb-4">
     <!-- Intern Profile Header Card -->
     <div class="col-lg-4">
@@ -9,6 +31,12 @@
                 <h4 class="fw-bold text-dark mb-1"><?= \App\Helpers\e($intern['full_name']) ?></h4>
                 <div class="text-muted small mb-2"><?= \App\Helpers\e($intern['course']) ?> (<?= \App\Helpers\e($intern['formation_level'] ?? '13ª') ?>)</div>
                 <div class="badge bg-secondary mb-3"><?= \App\Helpers\e($intern['internship_code']) ?></div>
+
+                <div class="mb-3">
+                    <a href="/admin/interns/<?= $intern['id'] ?>/edit" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="bi bi-pencil-square me-1"></i> Editar Dados
+                    </a>
+                </div>
 
                 <div class="d-flex justify-content-center gap-2 mb-4">
                     <?php if ($intern['risk_level'] === 'normal'): ?>

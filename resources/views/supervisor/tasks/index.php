@@ -27,6 +27,7 @@
                         <th>GitHub?</th>
                         <th>Atribuídos</th>
                         <th>Aprovados</th>
+                        <th class="text-end">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,6 +53,11 @@
                             </td>
                             <td><span class="badge bg-secondary"><?= $t['total_assigned'] ?> alunos</span></td>
                             <td><span class="badge bg-success"><?= $t['total_approved'] ?> aprovados</span></td>
+                            <td class="text-end">
+                                <a href="<?= $basePath ?>/tasks/<?= $t['id'] ?>/edit" class="btn btn-sm btn-outline-secondary" title="Editar Tarefa">
+                                    <i class="bi bi-pencil me-1"></i> Editar
+                                </a>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

@@ -64,6 +64,15 @@
                                     <?= \App\Helpers\e($msg['sender_name']) ?>
                                 </div>
                                 <div class="small" style="white-space: pre-wrap;"><?= \App\Helpers\e($msg['message']) ?></div>
+                                <?php if (!empty($msg['attachment_path'])): ?>
+                                    <div class="mt-2 pt-2 border-top <?= $isMe ? 'border-white-50' : 'border-secondary-subtle' ?>">
+                                        <a href="<?= \App\Helpers\e($msg['attachment_path']) ?>" target="_blank" download class="d-inline-flex align-items-center gap-2 text-decoration-none <?= $isMe ? 'text-white' : 'text-primary' ?> small fw-semibold <?= $isMe ? 'bg-white bg-opacity-25' : 'bg-white border' ?> px-2 py-1 rounded">
+                                            <i class="bi bi-paperclip"></i>
+                                            <span class="text-truncate" style="max-width: 220px;"><?= \App\Helpers\e($msg['attachment_name'] ?: 'Baixar Anexo') ?></span>
+                                            <i class="bi bi-download ms-1"></i>
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
                                 <div class="text-end mt-1 <?= $isMe ? 'text-white-50' : 'text-muted' ?>" style="font-size: 10px;">
                                     <?= \App\Helpers\format_date($msg['created_at'], true) ?>
                                 </div>
@@ -73,12 +82,25 @@
                 </div>
 
                 <div class="card-footer bg-white p-3 border-top">
-                    <form action="/admin/messages/<?= $activeConversation['id'] ?>/reply" method="POST">
+                    <form action="/admin/messages/<?= $activeConversation['id'] ?>/reply" method="POST" enctype="multipart/form-data">
                         <?= \App\Helpers\csrf_field() ?>
                         <div class="input-group">
-                            <input type="text" name="message" class="form-control" placeholder="Escreva a sua resposta oficial para a instituição..." required>
+                            <label class="btn btn-outline-secondary" for="adminChatAttachment" title="Anexar ficheiro">
+                                <i class="bi bi-paperclip"></i>
+                                <input type="file" id="adminChatAttachment" name="attachment" class="d-none" onchange="previewSelectedFile(this, 'adminFileIndicator')">
+                            </label>
+                            <input type="text" name="message" class="form-control" placeholder="Escreva a sua resposta oficial para a instituição...">
                             <button type="submit" class="btn btn-primary px-4 fw-bold">
                                 <i class="bi bi-send-fill me-1"></i> Responder
+                            </button>
+                        </div>
+                        <div id="adminFileIndicator" class="small text-muted mt-2 d-none align-items-center gap-2">
+                            <span class="badge bg-light text-dark border">
+                                <i class="bi bi-file-earmark-check text-success me-1"></i>
+                                <span class="filename-span"></span>
+                            </span>
+                            <button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" onclick="removeSelectedFile('adminChatAttachment', 'adminFileIndicator')">
+                                <i class="bi bi-x-circle"></i> Remover
                             </button>
                         </div>
                     </form>
@@ -92,3 +114,29 @@
         </div>
     </div>
 </div>
+
+<script>
+function previewSelectedFile(input, indicatorId) {
+    const indicator = document.getElementById(indicatorId);
+    if (!indicator) return;
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const span = indicator.querySelector('.filename-span');
+        if (span) span.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+        indicator.classList.remove('d-none');
+        indicator.classList.add('d-flex');
+    } else {
+        indicator.classList.add('d-none');
+        indicator.classList.remove('d-flex');
+    }
+}
+function removeSelectedFile(inputId, indicatorId) {
+    const input = document.getElementById(inputId);
+    const indicator = document.getElementById(indicatorId);
+    if (input) input.value = '';
+    if (indicator) {
+        indicator.classList.add('d-none');
+        indicator.classList.remove('d-flex');
+    }
+}
+</script>

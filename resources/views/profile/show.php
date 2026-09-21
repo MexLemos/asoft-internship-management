@@ -15,9 +15,9 @@
 
                     <!-- Profile Photo Display & Upload -->
                     <div class="d-flex align-items-center gap-4 mb-4 pb-3 border-bottom">
-                        <div class="position-relative">
-                            <?php if (!empty($user['profile_photo'])): ?>
-                                <img src="/uploads/avatars/<?= \App\Helpers\e($user['profile_photo']) ?>" class="rounded-circle object-fit-cover shadow-sm" style="width: 80px; height: 80px;" alt="Avatar">
+                            <?php $photoSrc = !empty($user['profile_photo']) ? $user['profile_photo'] : (!empty($user['avatar']) ? $user['avatar'] : null); ?>
+                            <?php if ($photoSrc): ?>
+                                <img src="/uploads/avatars/<?= \App\Helpers\e($photoSrc) ?>" class="rounded-circle object-fit-cover shadow-sm" style="width: 80px; height: 80px;" alt="Avatar">
                             <?php else: ?>
                                 <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
                                     <i class="bi bi-person-fill fs-1"></i>

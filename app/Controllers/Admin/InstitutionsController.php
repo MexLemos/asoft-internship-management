@@ -62,4 +62,86 @@ class InstitutionsController extends Controller
         }
         return $this->redirect('/admin/institutions');
     }
+
+    public function show(Request $request, string $id): Response
+    {
+        $instId = (int)$id;
+        $institution = Institution::findById($instId);
+
+        if (!$institution) {
+            Session::flash('error', 'Instituição não encontrada.');
+            return $this->redirect('/admin/institutions');
+        }
+
+        $interns = Institution::getInternsByInstitution($instId);
+
+        return $this->render('admin.institutions.show', [
+            'title' => 'Detalhes da Instituição: ' . $institution['name'],
+            'institution' => $institution,
+            'interns' => $interns
+        ], 'admin');
+    }
+
+    public function edit(Request $request, string $id): Response
+    {
+        $instId = (int)$id;
+        $institution = Institution::findById($instId);
+
+        if (!$institution) {
+            Session::flash('error', 'Instituição não encontrada.');
+            return $this->redirect('/admin/institutions');
+        }
+
+        return $this->render('admin.institutions.edit', [
+            'title' => 'Editar Instituição: ' . $institution['name'],
+            'institution' => $institution
+        ], 'admin');
+    }
+
+    public function update(Request $request, string $id): Response
+    {
+        $instId = (int)$id;
+        $institution = Institution::findById($instId);
+
+        if (!$institution) {
+            Session::flash('error', 'Instituição não encontrada.');
+            return $this->redirect('/admin/institutions');
+        }
+
+        $data = $request->all();
+        $errors = $this->validate($data, [
+            'name' => 'required|min:3',
+            'type' => 'required',
+            'email' => 'required|email'
+        ]);
+
+        if (!empty($errors)) {
+            Session::flash('error', implode(' ', $errors));
+            return $this->redirect("/admin/institutions/{$instId}/edit");
+        }
+
+        Institution::update($instId, $data);
+        AuditLog::log('institution_update', 'institutions', $instId, null, ['name' => $data['name']], 'success');
+
+        Session::flash('success', 'Dados da instituição atualizados com sucesso!');
+        return $this->redirect('/admin/institutions');
+    }
+
+    public function toggleStatus(Request $request, string $id): Response
+    {
+        $instId = (int)$id;
+        $institution = Institution::findById($instId);
+
+        if (!$institution) {
+            Session::flash('error', 'Instituição não encontrada.');
+            return $this->redirect('/admin/institutions');
+        }
+
+        $newStatus = Institution::toggleStatus($instId);
+        $statusLabel = ($newStatus === 'active') ? 'ativada' : 'desativada';
+        AuditLog::log('institution_toggle_status', 'institutions', $instId, null, ['new_status' => $newStatus], 'success');
+
+        Session::flash('success', "A instituição '{$institution['name']}' foi {$statusLabel} com sucesso.");
+        return $this->redirect('/admin/institutions');
+    }
 }

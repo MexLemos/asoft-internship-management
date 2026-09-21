@@ -73,4 +73,39 @@ class Task
 
         return (int)$pdo->lastInsertId();
     }
+
+    public static function update(int $id, array $data): bool
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("
+            UPDATE tasks SET
+                category_id = ?,
+                title = ?,
+                description = ?,
+                objective = ?,
+                instructions = ?,
+                priority = ?,
+                points = ?,
+                estimated_hours = ?,
+                evaluation_criteria = ?,
+                requires_github = ?,
+                status = ?
+            WHERE id = ? AND deleted_at IS NULL
+        ");
+
+        return $stmt->execute([
+            $data['category_id'],
+            $data['title'],
+            $data['description'],
+            $data['objective'] ?? null,
+            $data['instructions'] ?? null,
+            $data['priority'] ?? 'medium',
+            $data['points'] ?? 100,
+            $data['estimated_hours'] ?? 4.00,
+            $data['evaluation_criteria'] ?? null,
+            !empty($data['requires_github']) ? 1 : 0,
+            $data['status'] ?? 'published',
+            $id
+        ]);
+    }
 }

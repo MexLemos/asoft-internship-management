@@ -135,9 +135,14 @@
                                     </span>
                                 </td>
                                 <td class="text-end">
-                                    <a href="/admin/interns/<?= $i['id'] ?>" class="btn btn-outline-primary btn-sm" title="Ver Perfil Completo">
-                                        <i class="bi bi-eye-fill"></i> Abrir
-                                    </a>
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <a href="/admin/interns/<?= $i['id'] ?>" class="btn btn-outline-primary btn-sm" title="Ver Perfil Completo">
+                                            <i class="bi bi-eye-fill"></i> Abrir
+                                        </a>
+                                        <a href="/admin/interns/<?= $i['id'] ?>/edit" class="btn btn-outline-secondary btn-sm" title="Editar Estagiário">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
