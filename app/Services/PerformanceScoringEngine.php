@@ -102,12 +102,19 @@ class PerformanceScoringEngine
             : 0.00;
 
         // 7. Component 6: Final Evaluation (Avaliação Final Concluída)
-        $stmtFinal = $pdo->prepare("SELECT average_score, status FROM final_evaluations WHERE intern_id = ?");
-        $stmtFinal->execute([$internId]);
-        $finalRow = $stmtFinal->fetch(PDO::FETCH_ASSOC);
-        $finalScore = ($finalRow && $finalRow['average_score'] !== null)
-            ? round(((float)$finalRow['average_score'] / 5.0) * 100.0, 1)
-            : 0.00;
+        $finalRow = null;
+        $finalScore = 0.00;
+        try {
+            $stmtFinal = $pdo->prepare("SELECT average_score, status FROM final_evaluations WHERE intern_id = ?");
+            $stmtFinal->execute([$internId]);
+            $finalRow = $stmtFinal->fetch(PDO::FETCH_ASSOC);
+            if ($finalRow && $finalRow['average_score'] !== null) {
+                $finalScore = round(((float)$finalRow['average_score'] / 5.0) * 100.0, 1);
+            }
+        } catch (\Throwable $ignored) {
+            $finalRow = null;
+            $finalScore = 0.00;
+        }
 
         // Check if there is any real activity or evaluation for this intern
         $hasAnyActivity = ($totalDays > 0 || $totalAssigned > 0 || $testAttempts > 0 || $compCount > 0 || $behavCount > 0 || !empty($finalRow));

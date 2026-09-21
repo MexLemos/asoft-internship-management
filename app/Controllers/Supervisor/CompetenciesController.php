@@ -18,7 +18,9 @@ class CompetenciesController extends Controller
     public function index(Request $request): Response
     {
         $user = Session::get('user');
-        $interns = Intern::all((int)$user['id']);
+        $userRoles = $user['roles'] ?? [];
+        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
+        $interns = Intern::all($isStaffAdmin ? null : (int)$user['id']);
 
         return $this->render('supervisor.competencies.index', [
             'title' => 'Avaliação de Competências dos Estagiários - Asoftmedia',

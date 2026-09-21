@@ -44,7 +44,10 @@ class InternsController extends Controller
 
         $intern = Intern::findById($internId);
 
-        if (!$intern || (int)$intern['supervisor_id'] !== $supervisorId) {
+        $userRoles = $user['roles'] ?? [];
+        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
+
+        if (!$intern || (!$isStaffAdmin && (int)$intern['supervisor_id'] !== $supervisorId)) {
             Session::flash('error', 'Estagiário não encontrado ou sem permissão de acesso.');
             return $this->redirect('/supervisor/interns');
         }
@@ -86,21 +89,21 @@ class InternsController extends Controller
         $stmt = $pdo->prepare("
             SELECT
                 COUNT(*) as total_records,
-                SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END)  as present,
-                SUM(CASE WHEN status = 'absent'  THEN 1 ELSE 0 END)  as absent,
-                SUM(CASE WHEN status = 'late'    THEN 1 ELSE 0 END)  as late,
-                SUM(CASE WHEN status = 'excused' THEN 1 ELSE 0 END)  as excused
+                SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as present,
+                SUM(CASE WHEN status = 'absent'  THEN 1 ELSE 0 END) as absent,
+                SUM(CASE WHEN check_in_status = 'late' THEN 1 ELSE 0 END) as late,
+                SUM(CASE WHEN status = 'justified_absence' THEN 1 ELSE 0 END) as excused
             FROM attendance
             WHERE intern_id = ?
         ");
         $stmt->execute([$internId]);
         $counts = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Last 10 late arrivals with details
+        // Last 10 late arrivals with details (using justification_reason as notes)
         $stmtLate = $pdo->prepare("
-            SELECT date, check_in_time, notes
+            SELECT date, check_in_time, COALESCE(justification_reason, '') as notes
             FROM attendance
-            WHERE intern_id = ? AND status = 'late'
+            WHERE intern_id = ? AND check_in_status = 'late'
             ORDER BY date DESC
             LIMIT 10
         ");
@@ -109,7 +112,7 @@ class InternsController extends Controller
 
         // Last 10 absences
         $stmtAbsent = $pdo->prepare("
-            SELECT date, notes
+            SELECT date, COALESCE(justification_reason, '') as notes
             FROM attendance
             WHERE intern_id = ? AND status = 'absent'
             ORDER BY date DESC

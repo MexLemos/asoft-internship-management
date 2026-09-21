@@ -19,41 +19,64 @@
                         <code>1</code>: Iniciante • <code>2</code>: Básico • <code>3</code>: Intermediário • <code>4</code>: Avançado • <code>5</code>: Excelente
                     </div>
 
-                    <div class="row g-4 mb-4">
-                        <?php foreach ($competencies as $comp): ?>
-                            <div class="col-md-6">
-                                <div class="p-3 border rounded-3 bg-light h-100">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div>
-                                            <strong class="text-dark"><?= \App\Helpers\e($comp['name']) ?></strong>
-                                            <span class="badge bg-secondary ms-1 small"><?= \App\Helpers\e($comp['category_name']) ?></span>
+                    <?php if (empty($competencies)): ?>
+                        <div class="alert alert-warning text-center py-4 my-4 rounded-3">
+                            <i class="bi bi-exclamation-triangle fs-2 d-block mb-2 text-warning"></i>
+                            <h6 class="fw-bold">Nenhuma competência encontrada para este estagiário.</h6>
+                            <p class="small text-muted mb-3">Clique no botão abaixo para recarregar a matriz oficial de competências.</p>
+                            <a href="/supervisor/competencies/evaluate/<?= $intern['id'] ?>" class="btn btn-primary btn-sm px-3">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Carregar Matriz de Competências
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <?php
+                            $grouped = [];
+                            foreach ($competencies as $c) {
+                                $cat = $c['category_name'] ?? 'Gerais';
+                                $grouped[$cat][] = $c;
+                            }
+                        ?>
+
+                        <?php foreach ($grouped as $categoryName => $comps): ?>
+                            <div class="d-flex align-items-center gap-2 mb-3 mt-4">
+                                <span class="badge bg-primary px-2 py-1"><i class="bi bi-bookmark-check me-1"></i> <?= \App\Helpers\e($categoryName) ?></span>
+                                <hr class="flex-grow-1 my-0 text-muted">
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <?php foreach ($comps as $comp): ?>
+                                    <div class="col-md-6">
+                                        <div class="p-3 border rounded-3 bg-light h-100 shadow-xs">
+                                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                                <strong class="text-dark fs-6"><?= \App\Helpers\e($comp['name']) ?></strong>
+                                            </div>
+                                            <p class="small text-muted mb-3"><?= \App\Helpers\e($comp['description'] ?? '') ?></p>
+
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold text-secondary">Nível Demonstrado (1-5): *</label>
+                                                <select name="levels[<?= $comp['id'] ?>]" class="form-select form-select-sm" required>
+                                                    <option value="1" <?= (int)$comp['current_level'] === 1 ? 'selected' : '' ?>>1 — Iniciante (Aprendeu conceitos iniciais)</option>
+                                                    <option value="2" <?= (int)$comp['current_level'] === 2 ? 'selected' : '' ?>>2 — Básico (Executa com auxílio constante)</option>
+                                                    <option value="3" <?= (int)$comp['current_level'] === 3 ? 'selected' : '' ?>>3 — Intermediário (Executa tarefas de forma autónoma)</option>
+                                                    <option value="4" <?= (int)$comp['current_level'] === 4 ? 'selected' : '' ?>>4 — Avançado (Domina boas práticas e resolve problemas)</option>
+                                                    <option value="5" <?= (int)$comp['current_level'] === 5 ? 'selected' : '' ?>>5 — Excelente (Excepcional, padrão sênior/referência)</option>
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label class="form-label small fw-semibold text-secondary">Evidências / Observações:</label>
+                                                <input type="text" name="notes[<?= $comp['id'] ?>]" class="form-control form-control-sm" value="<?= \App\Helpers\e($comp['evidence_notes'] ?? '') ?>" placeholder="ex: Demonstrou nas tarefas práticas e commits">
+                                            </div>
                                         </div>
                                     </div>
-                                    <p class="small text-muted mb-3"><?= \App\Helpers\e($comp['description']) ?></p>
-
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Nível Demonstrado (1-5):</label>
-                                        <select name="levels[<?= $comp['id'] ?>]" class="form-select form-select-sm">
-                                            <option value="1" <?= (int)$comp['current_level'] === 1 ? 'selected' : '' ?>>1 — Iniciante (Aprendeu conceitos iniciais)</option>
-                                            <option value="2" <?= (int)$comp['current_level'] === 2 ? 'selected' : '' ?>>2 — Básico (Executa com auxílio constante)</option>
-                                            <option value="3" <?= (int)$comp['current_level'] === 3 ? 'selected' : '' ?>>3 — Intermediário (Executa tarefas comuns de forma autônoma)</option>
-                                            <option value="4" <?= (int)$comp['current_level'] === 4 ? 'selected' : '' ?>>4 — Avançado (Domina boas práticas e resolve problemas complexos)</option>
-                                            <option value="5" <?= (int)$comp['current_level'] === 5 ? 'selected' : '' ?>>5 — Excelente (Excepcional, padrão sênior/referência)</option>
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label class="form-label small fw-semibold">Evidências / Observações:</label>
-                                        <input type="text" name="notes[<?= $comp['id'] ?>]" class="form-control form-control-sm" value="<?= \App\Helpers\e($comp['evidence_notes'] ?? '') ?>" placeholder="ex: Demonstrou nas tarefas de CRUD e Git">
-                                    </div>
-                                </div>
+                                <?php endforeach; ?>
                             </div>
                         <?php endforeach; ?>
-                    </div>
+                    <?php endif; ?>
 
-                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                    <div class="d-flex justify-content-end gap-2 pt-4 mt-4 border-top">
                         <a href="/supervisor/competencies" class="btn btn-light">Cancelar</a>
-                        <button type="submit" class="btn btn-primary px-4 fw-bold">
+                        <button type="submit" class="btn btn-primary px-4 fw-bold" <?= empty($competencies) ? 'disabled' : '' ?>>
                             <i class="bi bi-save me-1"></i> Gravar Avaliação de Competências
                         </button>
                     </div>

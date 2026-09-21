@@ -14,52 +14,53 @@
                     <?= \App\Helpers\csrf_field() ?>
 
                     <!-- Profile Photo Display & Upload -->
-                    <div class="d-flex align-items-center gap-4 mb-4 pb-3 border-bottom">
+                    <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 gap-sm-4 mb-4 pb-3 border-bottom">
+                        <div>
                             <?php $photoSrc = !empty($user['profile_photo']) ? $user['profile_photo'] : (!empty($user['avatar']) ? $user['avatar'] : null); ?>
                             <?php if ($photoSrc): ?>
-                                <img src="/uploads/avatars/<?= \App\Helpers\e($photoSrc) ?>" class="rounded-circle object-fit-cover shadow-sm" style="width: 80px; height: 80px;" alt="Avatar">
+                                <img src="/uploads/avatars/<?= \App\Helpers\e($photoSrc) ?>" class="rounded-circle object-fit-cover shadow-sm border" style="width: 80px; height: 80px;" alt="Avatar">
                             <?php else: ?>
-                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 80px; height: 80px;">
                                     <i class="bi bi-person-fill fs-1"></i>
                                 </div>
                             <?php endif; ?>
                         </div>
-                        <div>
-                            <label class="form-label small fw-semibold">Atualizar Foto de Perfil</label>
-                            <input type="file" name="photo" class="form-control form-control-sm" accept="image/png, image/jpeg, image/webp">
-                            <div class="form-text small">Formatos: JPG, PNG, WebP (Máx: 2MB).</div>
+                        <div class="flex-grow-1">
+                            <label class="form-label small fw-semibold mb-1">Atualizar Foto de Perfil</label>
+                            <input type="file" name="photo" class="form-control" accept="image/png, image/jpeg, image/webp">
+                            <div class="form-text small text-muted mt-1">Formatos suportados: JPG, PNG, WebP (Máx: 2MB).</div>
                         </div>
                     </div>
 
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Nome de Exibição *</label>
+                        <div class="col-md-6 mb-1">
+                            <label class="form-label small fw-semibold mb-1">Nome de Exibição *</label>
                             <input type="text" name="name" class="form-control" value="<?= \App\Helpers\e($user['name']) ?>" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Email de Contacto</label>
+                        <div class="col-md-6 mb-1">
+                            <label class="form-label small fw-semibold mb-1">Email de Contacto</label>
                             <input type="email" class="form-control bg-light" value="<?= \App\Helpers\e($user['email']) ?>" readonly>
-                            <div class="form-text small">Para alterar o email oficial, contacte a administração.</div>
+                            <div class="form-text small text-muted mt-1">Para alterar o email oficial, contacte a administração.</div>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Telefone de Contacto</label>
+                        <div class="col-md-6 mb-1">
+                            <label class="form-label small fw-semibold mb-1">Telefone de Contacto</label>
                             <input type="text" name="phone" class="form-control" value="<?= \App\Helpers\e($user['phone'] ?? '') ?>" placeholder="+244 923 000 000">
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Nome de Utilizador (Login)</label>
+                        <div class="col-md-6 mb-1">
+                            <label class="form-label small fw-semibold mb-1">Nome de Utilizador (Login)</label>
                             <input type="text" class="form-control bg-light" value="<?= \App\Helpers\e($user['username'] ?? '') ?>" readonly>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Perfil do LinkedIn (URL)</label>
+                        <div class="col-md-6 mb-1">
+                            <label class="form-label small fw-semibold mb-1">Perfil do LinkedIn (URL)</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-primary text-white"><i class="bi bi-linkedin"></i></span>
                                 <input type="url" name="linkedin_url" class="form-control" value="<?= \App\Helpers\e($user['linkedin_url'] ?? '') ?>" placeholder="https://linkedin.com/in/usuario">
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Perfil do GitHub (URL)</label>
+                        <div class="col-md-6 mb-1">
+                            <label class="form-label small fw-semibold mb-1">Perfil do GitHub (URL)</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-dark text-white"><i class="bi bi-github"></i></span>
                                 <input type="url" name="github_url" class="form-control" value="<?= \App\Helpers\e($user['github_url'] ?? '') ?>" placeholder="https://github.com/usuario">
@@ -72,7 +73,7 @@
                         <h6 class="fw-bold text-dark border-bottom pb-2 mt-4 mb-3">
                             <i class="bi bi-mortarboard-fill me-1 text-primary"></i> Informações do Estágio Curricular (Dados Protegidos)
                         </h6>
-                        <div class="row g-3 p-3 bg-light rounded-3 border">
+                        <div class="row g-3 p-3 bg-light rounded-3 border mx-0">
                             <div class="col-md-4">
                                 <span class="text-muted small">Número do BI:</span><br>
                                 <strong><?= \App\Helpers\e($intern['bi_number']) ?></strong>
@@ -94,7 +95,7 @@
                                 <strong><?= \App\Helpers\format_date($intern['start_date']) ?> a <?= \App\Helpers\format_date($intern['end_date']) ?></strong>
                             </div>
                         </div>
-                        <div class="form-text small text-muted mt-1">
+                        <div class="form-text small text-muted mt-2">
                             * Alterações no BI, Curso, Área ou Instituição devem ser solicitadas à administração da Asoftmedia.
                         </div>
                     <?php endif; ?>
