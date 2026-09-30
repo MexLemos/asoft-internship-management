@@ -194,6 +194,88 @@ echo "• Criação & Privacidade de Mentoria: ✔ Sessão 1-on-1 criada e filtr
 \App\Models\MentorshipLog::delete($sessionLogId);
 echo "• Limpeza de Dados de Teste: ✔ Concluída com sucesso!\n";
 
+// Test 9: Dynamic QR Code Generation & Single-Use Anti-Replay
+echo "\n9. Teste de QR Code Dinâmico & Prevenção Anti-Replay ...\n";
+$qrService = new \App\Services\DynamicQrAttendanceService();
+$tokenData = $qrService->getCurrentTerminalToken($adminUserId);
+
+if (empty($tokenData['token_hash']) || !str_starts_with($tokenData['qr_data_url'], 'data:image/png;base64,')) {
+    throw new RuntimeException("Falha na geração do QR Code dinâmico do terminal.");
+}
+echo "• Geração de Token Rotativo TOTP: ✔ Gerado com sucesso! (Hash: " . substr($tokenData['token_hash'], 0, 16) . "...)\n";
+
+// 9.1 Primeiro resgate válido pelo estagiário
+$firstRedeem = $qrService->validateAndRedeem($tokenData['token_hash'], $internId);
+if (!$firstRedeem['valid']) {
+    throw new RuntimeException("Falha no primeiro resgate do QR Code: " . $firstRedeem['message']);
+}
+echo "• Primeiro Resgate do Token: ✔ Autorizado com sucesso!\n";
+
+// 9.2 Tentativa de reutilização do mesmo token pelo mesmo estagiário (Anti-Replay)
+$secondRedeem = $qrService->validateAndRedeem($tokenData['token_hash'], $internId);
+if ($secondRedeem['valid']) {
+    throw new RuntimeException("ERRO: Token rotativo foi reutilizado pelo mesmo estagiário (Replay Attack falhou em ser bloqueado)!");
+}
+echo "• Proteção Anti-Replay: ✔ Segunda tentativa bloqueada com sucesso! ('{$secondRedeem['message']}')\n";
+
+// 9.3 Token adulterado ou inexistente
+$fakeRedeem = $qrService->validateAndRedeem('token_fraudulento_inexistente', $internId);
+if ($fakeRedeem['valid']) {
+    throw new RuntimeException("ERRO: Token inválido foi autorizado!");
+}
+echo "• Token Fraudulento: ✔ Rejeitado com sucesso!\n";
+
+// Test 10: Device Binding Anti-Fraude & Limiar de Precisão GPS
+echo "\n10. Teste de Vínculo de Dispositivos (Device Binding) & Precisão GPS ...\n";
+$pdo->exec("DELETE FROM intern_devices WHERE intern_id = {$internId}");
+$testDeviceUuid = 'test-device-uuid-' . bin2hex(random_bytes(8));
+
+// 10.1 Primeiro dispositivo do estagiário - Registo e validação
+$devRes = \App\Models\InternDevice::validateOrRegister($internId, $testDeviceUuid, 'Chrome Windows PC', 'Mozilla/5.0 Test Suite');
+if (!$devRes['valid']) {
+    throw new RuntimeException("Falha no registo do primeiro dispositivo: " . $devRes['message']);
+}
+echo "• Registo do Dispositivo: ✔ Dispositivo vinculado com sucesso!\n";
+
+// 10.2 Bloqueio de dispositivo pelo administrador
+$deviceRow = $pdo->query("SELECT id FROM intern_devices WHERE device_uuid = '{$testDeviceUuid}' LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+$testDeviceId = (int)$deviceRow['id'];
+
+\App\Models\InternDevice::blockDevice($testDeviceId);
+$blockedCheck = \App\Models\InternDevice::validateOrRegister($internId, $testDeviceUuid, 'Chrome Windows PC', 'Mozilla/5.0 Test Suite');
+if ($blockedCheck['valid']) {
+    throw new RuntimeException("ERRO: Dispositivo bloqueado foi autorizado!");
+}
+echo "• Dispositivo Bloqueado: ✔ Acesso bloqueado corretamente! ('{$blockedCheck['message']}')\n";
+
+// 10.3 Homologação / Desbloqueio do dispositivo
+\App\Models\InternDevice::trustDevice($testDeviceId);
+$trustedCheck = \App\Models\InternDevice::validateOrRegister($internId, $testDeviceUuid, 'Chrome Windows PC', 'Mozilla/5.0 Test Suite');
+if (!$trustedCheck['valid']) {
+    throw new RuntimeException("Falha na re-homologação do dispositivo.");
+}
+echo "• Homologação do Dispositivo: ✔ Dispositivo re-autorizado com sucesso!\n";
+
+// 10.4 Limiar de Precisão GPS (Rejeição com precisão degradada > 80m)
+$degradedGps = $attEngine->processCheckIn(
+    $internId,
+    $compLat + 0.00005,
+    $compLng + 0.00005,
+    250.0, // Precisão degradada de 250 metros (> 80 metros padrão)
+    '197.149.12.34',
+    'PHPUnit Test Device',
+    $testDeviceUuid
+);
+
+if ($degradedGps['success']) {
+    throw new RuntimeException("ERRO: GPS com precisão degradada (250m) deveria ter sido rejeitado!");
+}
+echo "• Filtro de Precisão GPS: ✔ Rejeitou com precisão de 250m! ('{$degradedGps['message']}')\n";
+
+// 10.5 Limpeza do dispositivo de teste
+\App\Models\InternDevice::removeDevice($testDeviceId);
+echo "• Limpeza do Dispositivo de Teste: ✔ Removido com sucesso!\n";
+
 echo "\n========================================================\n";
 echo "TODOS OS TESTES DE INTEGRAÇÃO PASSARAM COM 100% DE SUCESSO!\n";
 echo "========================================================\n";

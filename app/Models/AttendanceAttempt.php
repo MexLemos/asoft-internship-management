@@ -16,11 +16,11 @@ class AttendanceAttempt
             INSERT INTO attendance_attempts (
                 intern_id, type, attempt_time, latitude, longitude,
                 accuracy, distance_meters, is_within_radius, status,
-                failure_reason, ip_address, user_agent, device_fingerprint
+                failure_reason, ip_address, user_agent, device_uuid, verification_method, device_fingerprint
             ) VALUES (
                 ?, ?, NOW(), ?, ?,
                 ?, ?, ?, ?,
-                ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?
             )
         ");
 
@@ -36,6 +36,8 @@ class AttendanceAttempt
             $data['failure_reason'] ?? null,
             $data['ip_address'] ?? null,
             $data['user_agent'] ?? null,
+            $data['device_uuid'] ?? null,
+            $data['verification_method'] ?? 'gps',
             $data['device_fingerprint'] ?? null
         ]);
 

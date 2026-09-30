@@ -31,6 +31,9 @@
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/tasks') ? 'active' : '' ?>" href="/supervisor/tasks">
                     <i class="bi bi-list-task"></i> Gestão de Tarefas
                 </a>
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/attendance/terminal') ? 'active' : '' ?>" href="/supervisor/attendance/terminal">
+                    <i class="bi bi-qr-code-scan"></i> Terminal de Ponto (QR)
+                </a>
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/competencies') ? 'active' : '' ?>" href="/supervisor/competencies">
                     <i class="bi bi-award"></i> Competências
                 </a>

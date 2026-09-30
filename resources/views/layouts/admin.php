@@ -55,6 +55,12 @@
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/tasks') ? 'active' : '' ?>" href="/admin/tasks">
                     <i class="bi bi-list-task"></i> Gestão de Tarefas
                 </a>
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/attendance/terminal') ? 'active' : '' ?>" href="/admin/attendance/terminal">
+                    <i class="bi bi-qr-code-scan"></i> Terminal de Ponto (QR)
+                </a>
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/admin/attendance/devices') ? 'active' : '' ?>" href="/admin/attendance/devices">
+                    <i class="bi bi-phone"></i> Dispositivos Vinculados
+                </a>
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/competencies') ? 'active' : '' ?>" href="/supervisor/competencies">
                     <i class="bi bi-award-fill"></i> Competências
                 </a>

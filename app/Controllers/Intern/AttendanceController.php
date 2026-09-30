@@ -39,6 +39,7 @@ class AttendanceController extends Controller
         $companyLat = (float)SystemSetting::get('company_latitude', -8.83833);
         $companyLng = (float)SystemSetting::get('company_longitude', 13.23444);
         $radiusMeters = (int)SystemSetting::get('company_radius_meters', 100);
+        $maxAccuracy = (float)SystemSetting::get('max_gps_accuracy_meters', 80.0);
 
         return $this->render('intern.attendance.index', [
             'title' => 'Marcar Presença por Geolocalização - Asoftmedia',
@@ -48,7 +49,8 @@ class AttendanceController extends Controller
             'stats' => $stats,
             'companyLat' => $companyLat,
             'companyLng' => $companyLng,
-            'radiusMeters' => $radiusMeters
+            'radiusMeters' => $radiusMeters,
+            'maxAccuracy' => $maxAccuracy
         ], 'intern');
     }
 
@@ -63,7 +65,9 @@ class AttendanceController extends Controller
 
         $lat = (float)$request->input('latitude', 0.0);
         $lng = (float)$request->input('longitude', 0.0);
-        $accuracy = $request->input('accuracy') ? (float)$request->input('accuracy') : null;
+        $accuracy = $request->input('accuracy') !== null ? (float)$request->input('accuracy') : null;
+        $deviceUuid = $request->input('device_uuid') ? trim((string)$request->input('device_uuid')) : null;
+        $qrToken = $request->input('qr_token') ? trim((string)$request->input('qr_token')) : null;
 
         $result = $this->attendanceEngine->processCheckIn(
             (int)$intern['id'],
@@ -71,7 +75,9 @@ class AttendanceController extends Controller
             $lng,
             $accuracy,
             $request->ip(),
-            $request->userAgent()
+            $request->userAgent(),
+            $deviceUuid,
+            $qrToken
         );
 
         $statusCode = $result['success'] ? 200 : 403;
@@ -89,7 +95,9 @@ class AttendanceController extends Controller
 
         $lat = (float)$request->input('latitude', 0.0);
         $lng = (float)$request->input('longitude', 0.0);
-        $accuracy = $request->input('accuracy') ? (float)$request->input('accuracy') : null;
+        $accuracy = $request->input('accuracy') !== null ? (float)$request->input('accuracy') : null;
+        $deviceUuid = $request->input('device_uuid') ? trim((string)$request->input('device_uuid')) : null;
+        $qrToken = $request->input('qr_token') ? trim((string)$request->input('qr_token')) : null;
 
         $result = $this->attendanceEngine->processCheckOut(
             (int)$intern['id'],
@@ -97,7 +105,9 @@ class AttendanceController extends Controller
             $lng,
             $accuracy,
             $request->ip(),
-            $request->userAgent()
+            $request->userAgent(),
+            $deviceUuid,
+            $qrToken
         );
 
         $statusCode = $result['success'] ? 200 : 403;

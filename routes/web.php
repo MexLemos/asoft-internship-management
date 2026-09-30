@@ -62,6 +62,9 @@ $router->get('/politica-privacidade', [PrivacyController::class, 'showPolicy']);
 // Public Certificate & QR Code Validation
 $router->get('/validar/{hash}', [CertificateValidationController::class, 'validate']);
 
+// Dynamic Attendance Terminal Token API
+$router->get('/api/attendance/token', [\App\Controllers\Admin\AttendanceTerminalController::class, 'tokenApi']);
+
 // Authenticated Notifications (Any role)
 $router->group([
     'prefix' => 'notifications',
@@ -163,6 +166,13 @@ $router->group([
     $r->get('/tasks/review/{id}', [\App\Controllers\Admin\TasksController::class, 'review']);
     $r->post('/tasks/review/{id}/evaluate', [\App\Controllers\Admin\TasksController::class, 'submitEvaluation']);
     $r->post('/tasks/review/{id}/comment', [\App\Controllers\Admin\TasksController::class, 'addComment']);
+
+    // Attendance Terminal & Device Management
+    $r->get('/attendance/terminal', [\App\Controllers\Admin\AttendanceTerminalController::class, 'terminal']);
+    $r->get('/attendance/devices', [\App\Controllers\Admin\AttendanceTerminalController::class, 'devices']);
+    $r->post('/attendance/devices/{id}/trust', [\App\Controllers\Admin\AttendanceTerminalController::class, 'trustDevice']);
+    $r->post('/attendance/devices/{id}/block', [\App\Controllers\Admin\AttendanceTerminalController::class, 'blockDevice']);
+    $r->post('/attendance/devices/{id}/remove', [\App\Controllers\Admin\AttendanceTerminalController::class, 'removeDevice']);
 });
 
 // Supervisor Portal Routes (Role: supervisor, super_admin, admin)
@@ -213,6 +223,9 @@ $router->group([
     $r->get('/interns/{id}', [\App\Controllers\Supervisor\InternsController::class, 'show']);
     $r->post('/interns/{id}/change-status', [\App\Controllers\Supervisor\InternsController::class, 'changeStatus']);
     $r->post('/interns/{id}/mentorship/store', [\App\Controllers\Supervisor\InternsController::class, 'storeMentorshipLog']);
+
+    // Attendance Terminal
+    $r->get('/attendance/terminal', [\App\Controllers\Admin\AttendanceTerminalController::class, 'terminal']);
 });
 
 // Intern Portal Routes (Role: intern, super_admin)

@@ -40,10 +40,12 @@ class Attendance
         $stmt = $pdo->prepare("
             INSERT INTO attendance (
                 intern_id, date, check_in_time, check_in_lat, check_in_lng,
-                check_in_accuracy, check_in_distance_meters, check_in_ip, check_in_device, check_in_status, status
+                check_in_accuracy, check_in_distance_meters, check_in_ip, check_in_device, check_in_status,
+                verification_method, device_uuid, flagged_for_review, flag_reason, status
             ) VALUES (
                 ?, CURDATE(), CURTIME(), ?, ?,
-                ?, ?, ?, ?, ?, 'present'
+                ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, 'present'
             )
             ON DUPLICATE KEY UPDATE
                 check_in_time = CURTIME(),
@@ -54,6 +56,10 @@ class Attendance
                 check_in_ip = VALUES(check_in_ip),
                 check_in_device = VALUES(check_in_device),
                 check_in_status = VALUES(check_in_status),
+                verification_method = VALUES(verification_method),
+                device_uuid = VALUES(device_uuid),
+                flagged_for_review = VALUES(flagged_for_review),
+                flag_reason = VALUES(flag_reason),
                 status = 'present'
         ");
 
@@ -65,7 +71,11 @@ class Attendance
             $data['distance_meters'],
             $data['ip'] ?? null,
             $data['device'] ?? null,
-            $data['status'] ?? 'on_time'
+            $data['status'] ?? 'on_time',
+            $data['verification_method'] ?? 'gps',
+            $data['device_uuid'] ?? null,
+            !empty($data['flagged_for_review']) ? 1 : 0,
+            $data['flag_reason'] ?? null
         ]);
 
         return (int)$pdo->lastInsertId();

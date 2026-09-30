@@ -31,12 +31,18 @@
                 <!-- Geolocation Action Buttons -->
                 <div class="d-grid gap-3 mb-4">
                     <?php if (empty($todayRecord['check_in_time'])): ?>
-                        <button id="btn-check-in" class="btn btn-primary btn-attendance">
-                            <i class="bi bi-box-arrow-in-right me-2"></i> Marcar Entrada GPS
+                        <button id="btn-check-in" class="btn btn-primary btn-attendance py-2">
+                            <i class="bi bi-geo-alt-fill me-2"></i> Marcar Entrada GPS
+                        </button>
+                        <button type="button" class="btn btn-outline-primary py-2" data-bs-toggle="modal" data-bs-target="#qrAttendanceModal" data-action="check-in">
+                            <i class="bi bi-qr-code-scan me-2"></i> Marcar Entrada com QR Code do Terminal
                         </button>
                     <?php elseif (empty($todayRecord['check_out_time'])): ?>
-                        <button id="btn-check-out" class="btn btn-warning btn-attendance text-dark">
-                            <i class="bi bi-box-arrow-right me-2"></i> Marcar Saída GPS
+                        <button id="btn-check-out" class="btn btn-warning btn-attendance text-dark py-2">
+                            <i class="bi bi-geo-alt-fill me-2"></i> Marcar Saída GPS
+                        </button>
+                        <button type="button" class="btn btn-outline-warning text-dark py-2" data-bs-toggle="modal" data-bs-target="#qrAttendanceModal" data-action="check-out">
+                            <i class="bi bi-qr-code-scan me-2"></i> Marcar Saída com QR Code do Terminal
                         </button>
                     <?php else: ?>
                         <div class="alert alert-success d-flex align-items-center justify-content-center py-3">
@@ -46,8 +52,19 @@
                     <?php endif; ?>
                 </div>
 
-                <div class="small text-muted">
-                    <i class="bi bi-shield-check text-success me-1"></i> Raio máximo permitido pela empresa: <strong><?= $radiusMeters ?> metros</strong>.
+                <div class="p-2 bg-light rounded-3 text-start small border">
+                    <div class="d-flex justify-content-between text-muted mb-1">
+                        <span><i class="bi bi-shield-check text-success me-1"></i> Raio máximo permitido:</span>
+                        <strong><?= $radiusMeters ?> metros</strong>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted mb-1">
+                        <span><i class="bi bi-bullseye text-primary me-1"></i> Precisão mínima exigida:</span>
+                        <strong><?= $maxAccuracy ?> metros</strong>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted">
+                        <span><i class="bi bi-phone text-secondary me-1"></i> Dispositivo:</span>
+                        <span id="device-uuid-display" class="font-monospace small text-truncate" style="max-width: 160px;">A detetar...</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -136,6 +153,56 @@
                     <?php endforeach; ?>
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Validação por QR Code Rotativo do Terminal -->
+<div class="modal fade" id="qrAttendanceModal" tabindex="-1" aria-labelledby="qrAttendanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-dark text-white border-0 py-3">
+                <h6 class="modal-title fw-bold" id="qrAttendanceModalLabel">
+                    <i class="bi bi-qr-code-scan text-warning me-2"></i> Validação com Terminal de Ponto Físico
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p class="small text-muted mb-3">
+                    Aponte a câmara para o código QR dinâmico exibido no ecrã da recepção da Asoftmedia ou digite/cole o token gerado.
+                </p>
+
+                <!-- Feedback Message Box -->
+                <div id="qr-modal-feedback" class="mb-3 d-none"></div>
+
+                <!-- Video / Scanner Container -->
+                <div id="qr-reader-container" class="mb-3 rounded-3 overflow-hidden border bg-black d-none position-relative" style="min-height: 250px;">
+                    <div id="qr-reader" style="width: 100%;"></div>
+                </div>
+
+                <!-- Scanner Controls -->
+                <div class="d-grid gap-2 mb-3">
+                    <button type="button" id="btn-toggle-camera" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-camera-fill me-1"></i> <span id="camera-btn-text">Abrir Câmara para Digitalizar</span>
+                    </button>
+                </div>
+
+                <div class="position-relative my-3">
+                    <hr class="text-muted">
+                    <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 small text-muted">ou validação manual</span>
+                </div>
+
+                <!-- Manual Token Input -->
+                <form id="form-manual-qr">
+                    <div class="mb-3 text-start">
+                        <label for="input-qr-token" class="form-label small fw-bold text-dark">Código / Hash do QR Code:</label>
+                        <input type="text" class="form-control font-monospace" id="input-qr-token" placeholder="Cole o token do terminal..." required autocomplete="off">
+                    </div>
+                    <button type="submit" id="btn-submit-qr-token" class="btn btn-success w-100 py-2">
+                        <i class="bi bi-check-circle-fill me-1"></i> Validar Presença com Token
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
