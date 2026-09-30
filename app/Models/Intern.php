@@ -378,6 +378,12 @@ class Intern
             $startDate = !empty($data['start_date']) ? $data['start_date'] : $intern['start_date'];
             $endDate = !empty($data['end_date']) ? $data['end_date'] : self::calculateEndDate($startDate);
 
+            $oldStatus = $intern['status'];
+            $newStatus = $data['status'] ?? $oldStatus;
+            $statusReason = !empty($data['status_reason']) ? trim((string)$data['status_reason']) : 'Atualização de dados cadastrais.';
+            $workMode = $data['work_mode'] ?? ($intern['work_mode'] ?? 'presential');
+            $remoteUntil = !empty($data['remote_authorized_until']) ? $data['remote_authorized_until'] : null;
+
             $stmtIntern = $pdo->prepare("
                 UPDATE interns SET
                     institution_id = ?,
@@ -395,7 +401,10 @@ class Intern
                     internship_area = ?,
                     start_date = ?,
                     end_date = ?,
-                    status = ?
+                    status = ?,
+                    status_reason = ?,
+                    work_mode = ?,
+                    remote_authorized_until = ?
                 WHERE id = ?
             ");
             $stmtIntern->execute([
@@ -414,9 +423,25 @@ class Intern
                 $data['internship_area'] ?? 'Geral',
                 $startDate,
                 $endDate,
-                $data['status'] ?? $intern['status'],
+                $newStatus,
+                $statusReason,
+                $workMode,
+                $remoteUntil,
                 $internId
             ]);
+
+            // If status changed, record transition in history and sync account status
+            if ($newStatus !== $oldStatus) {
+                $sessionUser = \App\Core\Session::get('user');
+                $changerId = $sessionUser['id'] ?? $userId;
+                InternStatusHistory::log($internId, $oldStatus, $newStatus, (int)$changerId, $statusReason);
+
+                if (in_array($newStatus, ['dropped_out', 'terminated_anomalous', 'suspended'], true)) {
+                    $pdo->prepare("UPDATE users SET status = 'inactive' WHERE id = ?")->execute([$userId]);
+                } elseif ($newStatus === 'active') {
+                    $pdo->prepare("UPDATE users SET status = 'active' WHERE id = ?")->execute([$userId]);
+                }
+            }
 
             // 3. Update or Insert Schedule
             $expectedStart = $data['expected_start_time'] ?? '08:00:00';
@@ -463,5 +488,45 @@ class Intern
             $pdo->rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Gets the full lifecycle status history for an intern.
+     */
+    public static function getStatusHistory(int $internId): array
+    {
+        return InternStatusHistory::getHistoryForIntern($internId);
+    }
+
+    /**
+     * Gets mentorship and continuous supervision sessions for an intern.
+     */
+    public static function getMentorshipLogs(int $internId, bool $includePrivate = true): array
+    {
+        return MentorshipLog::getForIntern($internId, $includePrivate);
+    }
+
+    /**
+     * Human-readable label for intern lifecycle status.
+     */
+    public static function getStatusLabel(string $status): string
+    {
+        return \App\Services\InternLifecycleService::STATUS_LABELS[$status] ?? ucfirst($status);
+    }
+
+    /**
+     * Bootstrap badge class for intern lifecycle status.
+     */
+    public static function getStatusBadge(string $status): string
+    {
+        return \App\Services\InternLifecycleService::STATUS_BADGES[$status] ?? 'bg-secondary';
+    }
+
+    /**
+     * Gets available next states for an intern.
+     */
+    public static function getAvailableTransitions(string $currentStatus): array
+    {
+        return \App\Services\InternLifecycleService::getAvailableTransitions($currentStatus);
     }
 }

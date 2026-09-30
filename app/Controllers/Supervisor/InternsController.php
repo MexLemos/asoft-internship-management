@@ -67,6 +67,10 @@ class InternsController extends Controller
         $tasks       = TaskAssignment::getForIntern($internId);
         $competencies = Competency::getForIntern($internId);
 
+        $statusHistory = Intern::getStatusHistory($internId);
+        $mentorshipLogs = Intern::getMentorshipLogs($internId, true);
+        $availableTransitions = Intern::getAvailableTransitions($intern['status']);
+
         return $this->render('supervisor.interns.show', [
             'title'             => 'Detalhe do Estagiário: ' . $intern['full_name'],
             'intern'            => $intern,
@@ -75,6 +79,9 @@ class InternsController extends Controller
             'tasks'             => $tasks,
             'competencies'      => $competencies,
             'scoreData'         => $scoreData,
+            'statusHistory'     => $statusHistory,
+            'mentorshipLogs'    => $mentorshipLogs,
+            'availableTransitions' => $availableTransitions,
         ], 'supervisor');
     }
 
@@ -130,5 +137,81 @@ class InternsController extends Controller
             'late_records'  => $lateRecords,
             'absent_records'=> $absentRecords,
         ];
+    }
+
+    public function storeMentorshipLog(Request $request, string $id): Response
+    {
+        $internId = (int)$id;
+        $user = Session::get('user');
+        $supervisorId = (int)$user['id'];
+
+        $intern = Intern::findById($internId);
+        $userRoles = $user['roles'] ?? [];
+        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
+
+        if (!$intern || (!$isStaffAdmin && (int)$intern['supervisor_id'] !== $supervisorId)) {
+            Session::flash('error', 'Estagiário não encontrado ou sem permissão de acesso.');
+            return $this->redirect('/supervisor/interns');
+        }
+
+        $data = $request->all();
+        $errors = $this->validate($data, [
+            'title' => 'required|min:3',
+            'summary' => 'required|min:5',
+            'session_type' => 'required',
+            'session_date' => 'required'
+        ]);
+
+        if (!empty($errors)) {
+            Session::flash('error', implode(' ', $errors));
+            return $this->redirect("/supervisor/interns/{$internId}");
+        }
+
+        $data['intern_id'] = $internId;
+        $data['supervisor_id'] = $supervisorId;
+
+        \App\Models\MentorshipLog::create($data);
+        \App\Models\AuditLog::log('mentorship_log_create', 'mentorship', $internId, null, [
+            'title' => $data['title'],
+            'type' => $data['session_type']
+        ], 'success');
+
+        Session::flash('success', 'Sessão de mentoria/orientação registada com sucesso!');
+        return $this->redirect("/supervisor/interns/{$internId}");
+    }
+
+    public function changeStatus(Request $request, string $id): Response
+    {
+        $internId = (int)$id;
+        $user = Session::get('user');
+        $supervisorId = (int)$user['id'];
+
+        $intern = Intern::findById($internId);
+        $userRoles = $user['roles'] ?? [];
+        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
+
+        if (!$intern || (!$isStaffAdmin && (int)$intern['supervisor_id'] !== $supervisorId)) {
+            Session::flash('error', 'Estagiário não encontrado ou sem permissão de acesso.');
+            return $this->redirect('/supervisor/interns');
+        }
+
+        $newStatus = trim((string)$request->input('status', ''));
+        $reason = trim((string)$request->input('reason', ''));
+
+        if (empty($newStatus) || empty($reason)) {
+            Session::flash('error', 'Novo estado e justificação são de preenchimento obrigatório.');
+            return $this->redirect("/supervisor/interns/{$internId}");
+        }
+
+        try {
+            $lifecycleService = new \App\Services\InternLifecycleService();
+            $result = $lifecycleService->transition($internId, $newStatus, $supervisorId, $reason);
+
+            Session::flash('success', $result['message']);
+        } catch (\Throwable $e) {
+            Session::flash('error', $e->getMessage());
+        }
+
+        return $this->redirect("/supervisor/interns/{$internId}");
     }
 }

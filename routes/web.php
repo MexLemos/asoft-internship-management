@@ -101,6 +101,8 @@ $router->group([
     $r->get('/interns/{id}', [InternsController::class, 'show']);
     $r->get('/interns/{id}/edit', [InternsController::class, 'edit']);
     $r->post('/interns/{id}/update', [InternsController::class, 'update']);
+    $r->post('/interns/{id}/change-status', [InternsController::class, 'changeStatus']);
+    $r->post('/interns/{id}/mentorship/store', [InternsController::class, 'storeMentorshipLog']);
     $r->post('/interns/{id}/generate-certificate', [InternsController::class, 'generateCertificate']);
 
     // Institutions Management
@@ -209,6 +211,8 @@ $router->group([
     // Detalhes dos Estagiários (atrasos e informações)
     $r->get('/interns', [\App\Controllers\Supervisor\InternsController::class, 'index']);
     $r->get('/interns/{id}', [\App\Controllers\Supervisor\InternsController::class, 'show']);
+    $r->post('/interns/{id}/change-status', [\App\Controllers\Supervisor\InternsController::class, 'changeStatus']);
+    $r->post('/interns/{id}/mentorship/store', [\App\Controllers\Supervisor\InternsController::class, 'storeMentorshipLog']);
 });
 
 // Intern Portal Routes (Role: intern, super_admin)

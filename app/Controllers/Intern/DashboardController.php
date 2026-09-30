@@ -68,6 +68,9 @@ class DashboardController extends Controller
         $hoursCompleted = (float)($attStats['total_hours_worked'] ?? 0);
         $progressPct = ($totalHoursExpected > 0) ? min(100.0, ($hoursCompleted / $totalHoursExpected) * 100) : 0.0;
 
+        // Mentorship Feedback (Public/Shared with intern)
+        $mentorshipLogs = \App\Models\MentorshipLog::getForIntern($internId, false);
+
         return $this->render('intern.dashboard', [
             'title' => 'Portal do Estagiário - Asoftmedia',
             'intern' => $intern,
@@ -78,6 +81,7 @@ class DashboardController extends Controller
             'courses' => $courses,
             'eligibility' => $eligibility,
             'earnedBadges' => $earnedBadges,
+            'mentorshipLogs' => $mentorshipLogs,
             'progressPct' => round($progressPct, 1),
             'hoursCompleted' => round($hoursCompleted, 1),
             'totalHoursExpected' => round($totalHoursExpected, 0)

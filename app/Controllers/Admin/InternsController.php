@@ -181,6 +181,10 @@ class InternsController extends Controller
         $certService = new CertificateGeneratorService();
         $eligibility = $certService->checkEligibility($internId);
 
+        $statusHistory = Intern::getStatusHistory($internId);
+        $mentorshipLogs = Intern::getMentorshipLogs($internId, true);
+        $availableTransitions = Intern::getAvailableTransitions($intern['status']);
+
         return $this->render('admin.interns.show', [
             'title' => 'Perfil do Estagiário: ' . $intern['full_name'],
             'intern' => $intern,
@@ -188,7 +192,10 @@ class InternsController extends Controller
             'tasks' => $tasks,
             'competencies' => $competencies,
             'scoreData' => $scoreData,
-            'eligibility' => $eligibility
+            'eligibility' => $eligibility,
+            'statusHistory' => $statusHistory,
+            'mentorshipLogs' => $mentorshipLogs,
+            'availableTransitions' => $availableTransitions
         ], 'admin');
     }
 
@@ -280,5 +287,72 @@ class InternsController extends Controller
             Session::flash('error', 'Erro ao atualizar estagiário: ' . $e->getMessage());
             return $this->redirect("/admin/interns/{$internId}/edit");
         }
+    }
+
+    public function changeStatus(Request $request, string $id): Response
+    {
+        $internId = (int)$id;
+        $intern = Intern::findById($internId);
+        if (!$intern) {
+            Session::flash('error', 'Estagiário não encontrado.');
+            return $this->redirect('/admin/interns');
+        }
+
+        $newStatus = trim((string)$request->input('status', ''));
+        $reason = trim((string)$request->input('reason', ''));
+        $user = Session::get('user');
+
+        if (empty($newStatus) || empty($reason)) {
+            Session::flash('error', 'Novo estado e justificação são de preenchimento obrigatório.');
+            return $this->redirect("/admin/interns/{$internId}");
+        }
+
+        try {
+            $lifecycleService = new \App\Services\InternLifecycleService();
+            $result = $lifecycleService->transition($internId, $newStatus, (int)$user['id'], $reason);
+
+            Session::flash('success', $result['message']);
+        } catch (\Throwable $e) {
+            Session::flash('error', $e->getMessage());
+        }
+
+        return $this->redirect("/admin/interns/{$internId}");
+    }
+
+    public function storeMentorshipLog(Request $request, string $id): Response
+    {
+        $internId = (int)$id;
+        $intern = Intern::findById($internId);
+        if (!$intern) {
+            Session::flash('error', 'Estagiário não encontrado.');
+            return $this->redirect('/admin/interns');
+        }
+
+        $data = $request->all();
+        $user = Session::get('user');
+
+        $errors = $this->validate($data, [
+            'title' => 'required|min:3',
+            'summary' => 'required|min:5',
+            'session_type' => 'required',
+            'session_date' => 'required'
+        ]);
+
+        if (!empty($errors)) {
+            Session::flash('error', implode(' ', $errors));
+            return $this->redirect("/admin/interns/{$internId}");
+        }
+
+        $data['intern_id'] = $internId;
+        $data['supervisor_id'] = (int)$user['id'];
+
+        \App\Models\MentorshipLog::create($data);
+        AuditLog::log('mentorship_log_create', 'mentorship', $internId, null, [
+            'title' => $data['title'],
+            'type' => $data['session_type']
+        ], 'success');
+
+        Session::flash('success', 'Registo de mentoria/acompanhamento gravado com sucesso!');
+        return $this->redirect("/admin/interns/{$internId}");
     }
 }

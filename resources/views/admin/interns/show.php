@@ -30,12 +30,24 @@
                 </div>
                 <h4 class="fw-bold text-dark mb-1"><?= \App\Helpers\e($intern['full_name']) ?></h4>
                 <div class="text-muted small mb-2"><?= \App\Helpers\e($intern['course']) ?> (<?= \App\Helpers\e($intern['formation_level'] ?? '13ª') ?>)</div>
-                <div class="badge bg-secondary mb-3"><?= \App\Helpers\e($intern['internship_code']) ?></div>
+                <div class="d-flex justify-content-center gap-2 mb-2">
+                    <span class="badge bg-secondary"><?= \App\Helpers\e($intern['internship_code']) ?></span>
+                    <span class="badge <?= \App\Models\Intern::getStatusBadge($intern['status']) ?>"><?= \App\Models\Intern::getStatusLabel($intern['status']) ?></span>
+                </div>
+                <div class="small text-muted mb-3">
+                    <i class="bi bi-laptop me-1"></i> Regime: <strong><?= ($intern['work_mode'] ?? '') === 'remote' ? 'Remoto' : (($intern['work_mode'] ?? '') === 'hybrid' ? 'Híbrido' : 'Presencial') ?></strong>
+                </div>
 
-                <div class="mb-3">
-                    <a href="/admin/interns/<?= $intern['id'] ?>/edit" class="btn btn-outline-primary btn-sm w-100">
-                        <i class="bi bi-pencil-square me-1"></i> Editar Dados
+                <div class="d-grid gap-2 mb-3">
+                    <a href="/admin/interns/<?= $intern['id'] ?>/edit" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-pencil-square me-1"></i> Editar Dados Cadastrais
                     </a>
+                    <button type="button" class="btn btn-outline-warning btn-sm text-dark" data-bs-toggle="modal" data-bs-target="#modalChangeStatus">
+                        <i class="bi bi-arrow-repeat me-1"></i> Alterar Estado do Estágio
+                    </button>
+                    <button type="button" class="btn btn-outline-info btn-sm text-dark" data-bs-toggle="modal" data-bs-target="#modalNewMentorshipLog">
+                        <i class="bi bi-chat-heart me-1"></i> Registar Mentoria / 1-on-1
+                    </button>
                 </div>
 
                 <div class="d-flex justify-content-center gap-2 mb-4">
@@ -136,6 +148,16 @@
                     <i class="bi bi-award me-1"></i> Matriz de Competências (<?= count($competencies) ?>)
                 </button>
             </li>
+            <li class="nav-item">
+                <button class="nav-link fw-semibold" id="mentorship-tab" data-bs-toggle="tab" data-bs-target="#mentorship-pane" type="button">
+                    <i class="bi bi-chat-heart me-1"></i> Mentoria & 1-on-1 (<?= count($mentorshipLogs) ?>)
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-semibold" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-pane" type="button">
+                    <i class="bi bi-clock-history me-1"></i> Ciclo de Vida & Estados (<?= count($statusHistory) ?>)
+                </button>
+            </li>
         </ul>
 
         <div class="tab-content border border-top-0 bg-white rounded-bottom p-4" id="internTabContent">
@@ -227,6 +249,112 @@
                     <?php endforeach; ?>
                 </div>
             </div>
+
+            <!-- Mentorship & 1-on-1 Tab -->
+            <div class="tab-pane fade" id="mentorship-pane">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-chat-heart text-info me-2"></i> Sessões de Acompanhamento e Mentoria Contínua
+                    </h6>
+                    <button type="button" class="btn btn-outline-info btn-sm text-dark" data-bs-toggle="modal" data-bs-target="#modalNewMentorshipLog">
+                        <i class="bi bi-plus-circle me-1"></i> Nova Sessão
+                    </button>
+                </div>
+                <?php if (empty($mentorshipLogs)): ?>
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-journal-x fs-1 text-secondary opacity-50 mb-2"></i>
+                        <p class="mb-0 small">Nenhuma sessão de mentoria ou acompanhamento 1-on-1 registada até ao momento.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="list-group list-group-flush">
+                        <?php foreach ($mentorshipLogs as $m): ?>
+                            <div class="list-group-item p-3 border rounded-3 mb-3 bg-light">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <span class="badge bg-info text-dark me-2">
+                                            <?= \App\Models\MentorshipLog::TYPES[$m['session_type']] ?? ucfirst($m['session_type']) ?>
+                                        </span>
+                                        <?php if (!empty($m['is_private'])): ?>
+                                            <span class="badge bg-danger"><i class="bi bi-lock me-1"></i> Privado</span>
+                                        <?php endif; ?>
+                                        <h6 class="fw-bold d-inline mb-0 text-dark"><?= \App\Helpers\e($m['title']) ?></h6>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar-event me-1"></i> <?= date('d/m/Y H:i', strtotime($m['session_date'])) ?>
+                                    </small>
+                                </div>
+                                <p class="small text-dark mb-2"><?= nl2br(\App\Helpers\e($m['summary'])) ?></p>
+                                <?php if (!empty($m['topics_discussed'])): ?>
+                                    <div class="small text-muted mb-1">
+                                        <strong>Tópicos:</strong> <?= \App\Helpers\e($m['topics_discussed']) ?>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!empty($m['action_items'])): ?>
+                                    <div class="small text-primary mb-1">
+                                        <strong>Plano de Ação:</strong> <?= \App\Helpers\e($m['action_items']) ?>
+                                    </div>
+                                <?php endif; ?>
+                                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                    <small class="text-muted">
+                                        <i class="bi bi-person-check me-1"></i> Orientador: <strong><?= \App\Helpers\e($m['supervisor_name']) ?></strong>
+                                    </small>
+                                    <?php if (!empty($m['rating'])): ?>
+                                        <small class="text-warning">
+                                            <?= str_repeat('★', (int)$m['rating']) . str_repeat('☆', 5 - (int)$m['rating']) ?>
+                                            <span class="text-muted">(<?= $m['rating'] ?>/5)</span>
+                                        </small>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- State History Tab -->
+            <div class="tab-pane fade" id="history-pane">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-clock-history text-secondary me-2"></i> Trilha de Auditoria do Ciclo de Vida
+                    </h6>
+                    <button type="button" class="btn btn-outline-warning btn-sm text-dark" data-bs-toggle="modal" data-bs-target="#modalChangeStatus">
+                        <i class="bi bi-arrow-repeat me-1"></i> Transitar Estado
+                    </button>
+                </div>
+                <?php if (empty($statusHistory)): ?>
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-hourglass-split fs-1 text-secondary opacity-50 mb-2"></i>
+                        <p class="mb-0 small">Nenhuma transição de estado registada no histórico deste estagiário.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="timeline">
+                        <?php foreach ($statusHistory as $sh): ?>
+                            <div class="p-3 border rounded-3 mb-2 bg-light">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div>
+                                        <span class="badge <?= \App\Models\Intern::getStatusBadge($sh['from_status']) ?>">
+                                            <?= \App\Models\Intern::getStatusLabel($sh['from_status']) ?>
+                                        </span>
+                                        <i class="bi bi-arrow-right mx-1 text-muted"></i>
+                                        <span class="badge <?= \App\Models\Intern::getStatusBadge($sh['to_status']) ?>">
+                                            <?= \App\Models\Intern::getStatusLabel($sh['to_status']) ?>
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i> <?= date('d/m/Y H:i', strtotime($sh['created_at'])) ?>
+                                    </small>
+                                </div>
+                                <div class="small text-dark mt-1">
+                                    <strong>Justificação:</strong> <?= \App\Helpers\e($sh['reason']) ?>
+                                </div>
+                                <div class="small text-muted mt-1">
+                                    <i class="bi bi-person me-1"></i> Alterado por: <strong><?= \App\Helpers\e($sh['changer_name']) ?></strong> (<?= \App\Helpers\e($sh['changer_email']) ?>)
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </div>
@@ -301,5 +429,136 @@
                 <?php endif; ?>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Modal Alterar Estado do Estágio (State Machine) -->
+<div class="modal fade" id="modalChangeStatus" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="/admin/interns/<?= $intern['id'] ?>/change-status" method="POST" class="modal-content">
+            <?= \App\Helpers\csrf_field() ?>
+            <div class="modal-header bg-white">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="bi bi-arrow-repeat text-warning me-2"></i> Transitar Estado do Estágio
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Estado Atual:</label>
+                    <div>
+                        <span class="badge <?= \App\Models\Intern::getStatusBadge($intern['status']) ?> fs-6">
+                            <?= \App\Models\Intern::getStatusLabel($intern['status']) ?>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="status" class="form-label small fw-bold">Novo Estado Permitido <span class="text-danger">*</span></label>
+                    <select name="status" id="status" class="form-select" required>
+                        <option value="">-- Selecione o novo estado --</option>
+                        <?php foreach ($availableTransitions as $targetStatus): ?>
+                            <option value="<?= $targetStatus ?>">
+                                <?= \App\Models\Intern::getStatusLabel($targetStatus) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="form-text small">
+                        Apenas são exibidas as transições legalmente autorizadas pela máquina de estados do sistema.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="reason" class="form-label small fw-bold">Justificação Formal / Motivo <span class="text-danger">*</span></label>
+                    <textarea name="reason" id="reason" rows="3" class="form-control" placeholder="Indique o motivo detalhado para a alteração deste estado..." required></textarea>
+                    <div class="form-text small">
+                        Este registo ficará permanentemente gravado na trilha de auditoria e será notificado ao estagiário.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-warning fw-bold text-dark px-4">
+                    <i class="bi bi-check2-circle me-1"></i> Confirmar Transição
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Registar Mentoria / 1-on-1 -->
+<div class="modal fade" id="modalNewMentorshipLog" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form action="/admin/interns/<?= $intern['id'] ?>/mentorship/store" method="POST" class="modal-content">
+            <?= \App\Helpers\csrf_field() ?>
+            <div class="modal-header bg-white">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="bi bi-chat-heart text-info me-2"></i> Registar Sessão de Mentoria & Orientação
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Título da Sessão <span class="text-danger">*</span></label>
+                        <input type="text" name="title" class="form-control" placeholder="Ex: Alinhamento semanal de metas e postura" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">Tipo de Sessão <span class="text-danger">*</span></label>
+                        <select name="session_type" class="form-select" required>
+                            <?php foreach (\App\Models\MentorshipLog::TYPES as $key => $label): ?>
+                                <option value="<?= $key ?>"><?= $label ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">Data & Hora <span class="text-danger">*</span></label>
+                        <input type="datetime-local" name="session_date" class="form-control" value="<?= date('Y-m-d\TH:i') ?>" required>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">Resumo da Conversa / Parecer <span class="text-danger">*</span></label>
+                        <textarea name="summary" rows="3" class="form-control" placeholder="Descreva os pontos principais abordados na reunião..." required></textarea>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Tópicos Discutidos</label>
+                        <textarea name="topics_discussed" rows="2" class="form-control" placeholder="Tópicos técnicos, comportamentais ou acadêmicos..."></textarea>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Plano de Ação / Próximos Passos</label>
+                        <textarea name="action_items" rows="2" class="form-control" placeholder="Compromissos assumidos pelo estagiário..."></textarea>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Avaliação da Sessão (1 a 5 estrelas)</label>
+                        <select name="rating" class="form-select">
+                            <option value="">Sem nota quantitativa</option>
+                            <option value="5">★★★★★ - Excelente (5)</option>
+                            <option value="4">★★★★☆ - Muito Bom (4)</option>
+                            <option value="3">★★★☆☆ - Regular / Satisfatório (3)</option>
+                            <option value="2">★★☆☆☆ - Abaixo do Esperado (2)</option>
+                            <option value="1">★☆☆☆☆ - Crítico / Insatisfatório (1)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-center mt-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_private" value="1" id="is_private_check">
+                            <label class="form-check-label small" for="is_private_check">
+                                <strong>Registo Privado</strong> (Ocultar do estagiário, visível apenas a supervisores/direção)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-info fw-bold text-dark px-4">
+                    <i class="bi bi-save me-1"></i> Gravar Registo de Mentoria
+                </button>
+            </div>
+        </form>
     </div>
 </div>

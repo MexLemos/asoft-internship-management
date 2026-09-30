@@ -2,7 +2,15 @@
 <div class="card bg-primary text-white border-0 rounded-4 shadow-sm mb-4 overflow-hidden">
     <div class="card-body p-4 p-md-5 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
-            <span class="badge bg-white text-primary px-3 py-1 mb-2 fw-semibold">Área do Estagiário</span>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-white text-primary px-3 py-1 fw-semibold">Área do Estagiário</span>
+                <span class="badge <?= \App\Models\Intern::getStatusBadge($intern['status']) ?> px-3 py-1 fw-semibold">
+                    <?= \App\Models\Intern::getStatusLabel($intern['status']) ?>
+                </span>
+                <span class="badge bg-light text-dark px-2 py-1">
+                    <i class="bi bi-laptop me-1"></i> <?= ($intern['work_mode'] ?? '') === 'remote' ? 'Remoto' : (($intern['work_mode'] ?? '') === 'hybrid' ? 'Híbrido' : 'Presencial') ?>
+                </span>
+            </div>
             <h2 class="fw-bold mb-1">Olá, <?= \App\Helpers\e($intern['full_name']) ?>! 👋</h2>
             <p class="mb-0 text-white-50">Estágio em <?= \App\Helpers\e($intern['internship_area']) ?> • <?= \App\Helpers\e($intern['institution_name']) ?></p>
         </div>
@@ -174,6 +182,58 @@
                             <div class="fw-bold text-dark small"><?= \App\Helpers\e($b['name']) ?></div>
                             <div class="text-muted" style="font-size: 11px;"><?= \App\Helpers\e($b['description']) ?></div>
                             <span class="badge bg-warning text-dark mt-2">+<?= $b['points_reward'] ?> pts</span>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<!-- Mentorship & Guidance Feedback from Supervisor -->
+<?php if (!empty($mentorshipLogs)): ?>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3">
+            <h6 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-chat-heart text-info me-2"></i> Pareceres e Acompanhamento do Supervisor (1-on-1)
+            </h6>
+        </div>
+        <div class="card-body p-4">
+            <div class="list-group list-group-flush">
+                <?php foreach ($mentorshipLogs as $m): ?>
+                    <div class="list-group-item px-0 py-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="badge bg-info text-dark me-2">
+                                    <?= \App\Models\MentorshipLog::TYPES[$m['session_type']] ?? ucfirst($m['session_type']) ?>
+                                </span>
+                                <strong class="text-dark"><?= \App\Helpers\e($m['title']) ?></strong>
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-calendar3 me-1"></i> <?= date('d/m/Y H:i', strtotime($m['session_date'])) ?>
+                            </small>
+                        </div>
+                        <p class="small text-dark mb-2"><?= nl2br(\App\Helpers\e($m['summary'])) ?></p>
+                        <?php if (!empty($m['topics_discussed'])): ?>
+                            <div class="small text-muted mb-1">
+                                <strong>Tópicos Abordados:</strong> <?= \App\Helpers\e($m['topics_discussed']) ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($m['action_items'])): ?>
+                            <div class="small text-primary mb-1">
+                                <strong>Plano de Ação / Metas:</strong> <?= \App\Helpers\e($m['action_items']) ?>
+                            </div>
+                        <?php endif; ?>
+                        <div class="d-flex justify-content-between align-items-center mt-2 pt-1">
+                            <small class="text-muted">
+                                Orientador: <strong><?= \App\Helpers\e($m['supervisor_name']) ?></strong>
+                            </small>
+                            <?php if (!empty($m['rating'])): ?>
+                                <small class="text-warning">
+                                    <?= str_repeat('★', (int)$m['rating']) . str_repeat('☆', 5 - (int)$m['rating']) ?>
+                                    (<?= $m['rating'] ?>/5)
+                                </small>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php endforeach; ?>
