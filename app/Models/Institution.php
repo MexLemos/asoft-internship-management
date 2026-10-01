@@ -15,9 +15,9 @@ class Institution
         $stmt = $pdo->query("
             SELECT i.*, 
                    COUNT(DISTINCT intn.id) as total_interns,
-                   u.id as institution_user_id,
-                   u.username as institution_username,
-                   u.status as user_status
+                   MAX(u.id) as institution_user_id,
+                   MAX(u.username) as institution_username,
+                   MAX(u.status) as user_status
             FROM institutions i
             LEFT JOIN interns intn ON intn.institution_id = i.id AND intn.deleted_at IS NULL
             LEFT JOIN institution_users iu ON iu.institution_id = i.id
@@ -35,10 +35,10 @@ class Institution
         $stmt = $pdo->prepare("
             SELECT i.*, 
                    COUNT(DISTINCT intn.id) as total_interns,
-                   u.id as institution_user_id,
-                   u.username as institution_username,
-                   u.email as institution_user_email,
-                   u.status as user_status
+                   MAX(u.id) as institution_user_id,
+                   MAX(u.username) as institution_username,
+                   MAX(u.email) as institution_user_email,
+                   MAX(u.status) as user_status
             FROM institutions i
             LEFT JOIN interns intn ON intn.institution_id = i.id AND intn.deleted_at IS NULL
             LEFT JOIN institution_users iu ON iu.institution_id = i.id

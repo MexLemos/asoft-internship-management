@@ -1,4 +1,35 @@
 <div class="row g-4">
+    <!-- Database Schema Health & Auto-Sync Status -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0 bg-white">
+            <div class="card-body p-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-2 rounded-circle <?= !empty($isSchemaSynced) ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning' ?>">
+                        <i class="bi <?= !empty($isSchemaSynced) ? 'bi-database-check' : 'bi-database-exclamation' ?> fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark">Esquema da Base de Dados MySQL (Hostinger)</h6>
+                        <small class="text-muted">
+                            <?php if (!empty($isSchemaSynced)): ?>
+                                <span class="badge bg-success me-1">Sincronizado</span> Todas as tabelas das Fases 1 a 5 (Ciclo de Vida, Dispositivos e Dynamic QR) estão ativas e conformes.
+                            <?php else: ?>
+                                <span class="badge bg-warning text-dark me-1">Atualização Pendente</span> Existem tabelas ou colunas da nova versão que ainda requerem sincronização.
+                            <?php endif; ?>
+                        </small>
+                    </div>
+                </div>
+                <div>
+                    <form action="/admin/audit/sync-schema" method="POST" class="d-inline">
+                        <?= \App\Helpers\csrf_field() ?>
+                        <button type="submit" class="btn btn-primary btn-sm px-3 shadow-sm">
+                            <i class="bi bi-arrow-repeat me-1"></i> Sincronizar Esquema Agora
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Suspicious Attendance Attempts -->
     <div class="col-12">
         <div class="card shadow-sm border-0">
@@ -104,6 +135,31 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System PHP Error Logs (storage/logs/error.log) -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-secondary">
+                    <i class="bi bi-bug-fill me-2 text-danger"></i> Registo de Erros de Execução do Sistema (storage/logs/error.log)
+                </span>
+                <span class="badge bg-secondary"><?= count($errorLogs ?? []) ?> linhas recentes</span>
+            </div>
+            <div class="card-body p-3">
+                <?php if (empty($errorLogs)): ?>
+                    <div class="text-success small py-2">
+                        <i class="bi bi-check-circle-fill me-1"></i> Nenhum erro recente registado nos ficheiros de logs do servidor.
+                    </div>
+                <?php else: ?>
+                    <div class="bg-dark text-light p-3 rounded font-monospace small overflow-auto" style="max-height: 350px; font-size: 11px;">
+                        <?php foreach ($errorLogs as $errLine): ?>
+                            <div class="py-1 border-bottom border-secondary text-break"><?= htmlspecialchars($errLine) ?></div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

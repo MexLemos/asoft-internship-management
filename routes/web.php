@@ -160,6 +160,7 @@ $router->group([
     $r->get('/settings', [SettingsController::class, 'index']);
     $r->post('/settings/update', [SettingsController::class, 'update']);
     $r->get('/audit', [AuditController::class, 'index']);
+    $r->post('/audit/sync-schema', [AuditController::class, 'syncSchema']);
 
     // Tasks Management
     $r->get('/tasks', [\App\Controllers\Admin\TasksController::class, 'index']);

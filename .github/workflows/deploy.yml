@@ -35,7 +35,6 @@ jobs:
             **/tests/**
             **/storage/logs/**
             **/storage/cache/**
-            **/*.sql
             **/asoft_estagio_production.zip
             **/scratch/**
             **/public/uploads/materials/*

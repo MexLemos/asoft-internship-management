@@ -119,10 +119,15 @@ class Application
             return;
         }
 
+        $user = Session::get('user');
+        $userRoles = $user['roles'] ?? [];
+        $isAdmin = is_array($userRoles) && (in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true));
+        $canShowDebug = $isDebug || $isAdmin;
+
         $viewData = [
-            'message' => $isDebug ? $e->getMessage() : 'Ocorreu um erro inesperado ao processar o seu pedido.',
-            'exception' => $isDebug ? $e : null,
-            'isDebug' => $isDebug
+            'message' => $canShowDebug ? $e->getMessage() : 'Ocorreu um erro inesperado ao processar o seu pedido.',
+            'exception' => $canShowDebug ? $e : null,
+            'isDebug' => $canShowDebug
         ];
 
         try {

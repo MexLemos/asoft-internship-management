@@ -36,9 +36,11 @@ class Database
                     $dbConfig['password'],
                     $dbConfig['options']
                 );
+
+                \App\Services\DatabaseAutoMigrator::ensureSchemaUpToDate(self::$instance);
             } catch (PDOException $e) {
                 error_log('Database Connection Error: ' . $e->getMessage());
-                throw new RuntimeException('Não foi possível conectar à base de dados. Verifique a configuração do MySQL.');
+                throw new RuntimeException('Não foi possível conectar à base de dados: ' . $e->getMessage());
             }
         }
 
