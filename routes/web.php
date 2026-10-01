@@ -67,6 +67,9 @@ $router->get('/validar/{hash}', [CertificateValidationController::class, 'valida
 // Dynamic Attendance Terminal Token API
 $router->get('/api/attendance/token', [\App\Controllers\Admin\AttendanceTerminalController::class, 'tokenApi']);
 
+// GitHub Webhooks (PR Lifecycle & Automated Task Review Sync)
+$router->post('/api/webhooks/github', [\App\Controllers\Public\GithubWebhookController::class, 'handle']);
+
 // Authenticated Notifications (Any role)
 $router->group([
     'prefix' => 'notifications',
