@@ -38,7 +38,17 @@
                                             <span class="badge bg-danger"><?= round((float)$att['distance_meters']) ?>m da Asoftmedia</span>
                                         </td>
                                         <td class="text-danger fw-semibold"><?= \App\Helpers\e($att['failure_reason']) ?></td>
-                                        <td class="text-muted"><?= \App\Helpers\e($att['ip_address']) ?></td>
+                                        <td>
+                                            <div class="text-dark small"><?= \App\Helpers\e($att['ip_address'] ?? 'N/A') ?></div>
+                                            <?php if (!empty($att['device_uuid'])): ?>
+                                                <div class="font-monospace text-muted" style="font-size: 10px;" title="<?= \App\Helpers\e($att['device_uuid']) ?>">
+                                                    <i class="bi bi-phone me-1"></i><?= substr($att['device_uuid'], 0, 12) ?>...
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if (!empty($att['verification_method'])): ?>
+                                                <span class="badge bg-light text-secondary border mt-1" style="font-size: 10px;"><?= \App\Helpers\e($att['verification_method']) ?></span>
+                                            <?php endif; ?>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>
