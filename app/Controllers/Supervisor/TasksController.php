@@ -173,7 +173,17 @@ class TasksController extends Controller
         $assignment = TaskAssignment::findById((int)$id);
         if (!$assignment) {
             Session::flash('error', 'Atribuição não encontrada.');
-            return $this->redirect('/supervisor/dashboard');
+            return $this->redirect('/supervisor/tasks');
+        }
+
+        $user = Session::get('user');
+        $userRoles = $user['roles'] ?? [];
+        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
+        $intern = Intern::findById((int)$assignment['intern_id']);
+
+        if (!$isStaffAdmin && (int)($intern['supervisor_id'] ?? 0) !== (int)$user['id'] && (int)$assignment['assigned_by'] !== (int)$user['id']) {
+            Session::flash('error', 'Acesso negado: Não tem permissão para aceder a tarefas de estagiários de outro supervisor.');
+            return $this->redirect('/supervisor/tasks');
         }
 
         return $this->render('supervisor.tasks.review', [
@@ -185,9 +195,23 @@ class TasksController extends Controller
     public function submitEvaluation(Request $request, string $id): Response
     {
         $assignmentId = (int)$id;
-        $data = $request->all();
-        $user = Session::get('user');
+        $assignment = TaskAssignment::findById($assignmentId);
+        if (!$assignment) {
+            Session::flash('error', 'Atribuição não encontrada.');
+            return $this->redirect('/supervisor/tasks');
+        }
 
+        $user = Session::get('user');
+        $userRoles = $user['roles'] ?? [];
+        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
+        $intern = Intern::findById((int)$assignment['intern_id']);
+
+        if (!$isStaffAdmin && (int)($intern['supervisor_id'] ?? 0) !== (int)$user['id'] && (int)$assignment['assigned_by'] !== (int)$user['id']) {
+            Session::flash('error', 'Acesso negado: Não tem permissão para avaliar tarefas de estagiários de outro supervisor.');
+            return $this->redirect('/supervisor/tasks');
+        }
+
+        $data = $request->all();
         $status = $data['status'] ?? 'approved';
         $score = isset($data['score']) ? (float)$data['score'] : 100.0;
         $feedback = trim((string)($data['supervisor_feedback'] ?? ''));
@@ -195,11 +219,8 @@ class TasksController extends Controller
         TaskAssignment::evaluate($assignmentId, (int)$user['id'], $status, $score, $feedback);
 
         // Recalculate intern score
-        $assignment = TaskAssignment::findById($assignmentId);
-        if ($assignment) {
-            $scoring = new PerformanceScoringEngine();
-            $scoring->calculateForIntern((int)$assignment['intern_id']);
-        }
+        $scoring = new PerformanceScoringEngine();
+        $scoring->calculateForIntern((int)$assignment['intern_id']);
 
         AuditLog::log('task_evaluation', 'tasks', $assignmentId, null, [
             'status' => $status,
@@ -207,15 +228,29 @@ class TasksController extends Controller
         ], 'success');
 
         Session::flash('success', 'Parecer técnico gravado com sucesso!');
-        return $this->redirect('/supervisor/dashboard');
+        return $this->redirect('/supervisor/tasks');
     }
 
     public function addComment(Request $request, string $id): Response
     {
         $assignmentId = (int)$id;
-        $comment = trim((string)$request->input('comment', ''));
-        $user = Session::get('user');
+        $assignment = TaskAssignment::findById($assignmentId);
+        if (!$assignment) {
+            Session::flash('error', 'Atribuição não encontrada.');
+            return $this->redirect('/supervisor/tasks');
+        }
 
+        $user = Session::get('user');
+        $userRoles = $user['roles'] ?? [];
+        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
+        $intern = Intern::findById((int)$assignment['intern_id']);
+
+        if (!$isStaffAdmin && (int)($intern['supervisor_id'] ?? 0) !== (int)$user['id'] && (int)$assignment['assigned_by'] !== (int)$user['id']) {
+            Session::flash('error', 'Acesso negado: Não pode comentar tarefas de estagiários de outro supervisor.');
+            return $this->redirect('/supervisor/tasks');
+        }
+
+        $comment = trim((string)$request->input('comment', ''));
         if (!empty($comment)) {
             TaskAssignment::addComment($assignmentId, (int)$user['id'], $comment);
         }

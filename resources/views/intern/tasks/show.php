@@ -69,6 +69,19 @@
                 </h5>
             </div>
             <div class="card-body p-4">
+                <?php if (empty($canOperate)): ?>
+                    <div class="alert alert-warning py-3 text-start small border mb-4">
+                        <div class="d-flex align-items-center mb-1">
+                            <i class="bi bi-geo-alt-fill text-danger me-2 fs-5"></i>
+                            <strong>Presença Presencial Requerida</strong>
+                        </div>
+                        <p class="text-muted mb-2">Para iniciar ou submeter tarefas, é obrigatório registar a sua presença de hoje no terminal da receção ou por geolocalização.</p>
+                        <a href="/intern/attendance" class="btn btn-warning btn-sm text-dark fw-bold">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Registar Presença Agora
+                        </a>
+                    </div>
+                <?php endif; ?>
+
                 <?php if ($assignment['status'] === 'assigned'): ?>
                     <div class="text-center py-4">
                         <i class="bi bi-play-circle display-4 text-primary d-block mb-3"></i>
@@ -76,7 +89,7 @@
                         <p class="small text-muted mb-4">Clique no botão abaixo para marcar o início da execução da tarefa.</p>
                         <form action="/intern/tasks/<?= $assignment['id'] ?>/start" method="POST">
                             <?= \App\Helpers\csrf_field() ?>
-                            <button type="submit" class="btn btn-primary btn-lg fw-bold px-4">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold px-4" <?= empty($canOperate) ? 'disabled title="Registe primeiro a presença de hoje"' : '' ?>>
                                 <i class="bi bi-play-fill me-1"></i> Iniciar Tarefa
                             </button>
                         </form>
@@ -114,7 +127,7 @@
                             <textarea name="notes" class="form-control" rows="4" placeholder="Descreva brevemente como resolveu a tarefa, bibliotecas utilizadas ou dificuldades encontradas..."></textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm">
+                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm" <?= empty($canOperate) ? 'disabled title="Registe primeiro a presença de hoje"' : '' ?>>
                             <i class="bi bi-send-check me-1"></i> Enviar Submissão para Avaliação
                         </button>
                     </form>

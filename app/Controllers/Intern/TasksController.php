@@ -44,10 +44,18 @@ class TasksController extends Controller
             return $this->redirect('/intern/tasks');
         }
 
+        $todayRecord = \App\Models\Attendance::getTodayForIntern((int)$intern['id']);
+        $workMode = $intern['work_mode'] ?? 'presential';
+        $remoteUntil = $intern['remote_authorized_until'] ?? null;
+        $isRemote = ($workMode === 'remote') || (!empty($remoteUntil) && $remoteUntil >= date('Y-m-d'));
+        $canOperate = $isRemote || !empty($todayRecord['check_in_time']);
+
         return $this->render('intern.tasks.show', [
             'title' => 'Tarefa: ' . $assignment['title'],
             'assignment' => $assignment,
-            'intern' => $intern
+            'intern' => $intern,
+            'canOperate' => $canOperate,
+            'isRemote' => $isRemote
         ], 'intern');
     }
 

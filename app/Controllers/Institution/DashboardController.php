@@ -65,6 +65,20 @@ class DashboardController extends Controller
             return $this->redirect('/institution/dashboard');
         }
 
+        $user = Session::get('user');
+        $userRoles = $user['roles'] ?? [];
+        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
+
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("SELECT institution_id FROM institution_users WHERE user_id = ? LIMIT 1");
+        $stmt->execute([(int)$user['id']]);
+        $instId = (int)$stmt->fetchColumn();
+
+        if (!$isStaffAdmin && (int)$intern['institution_id'] !== $instId) {
+            Session::flash('error', 'Acesso negado: Este estagiário não pertence à sua instituição de ensino.');
+            return $this->redirect('/institution/dashboard');
+        }
+
         $attendance = Attendance::getForIntern($internId, 30);
         $tasks = TaskAssignment::getForIntern($internId);
         $competencies = Competency::getForIntern($internId);

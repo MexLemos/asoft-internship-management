@@ -27,8 +27,10 @@ use App\Controllers\Public\PasswordResetController;
 use App\Controllers\Public\PrivacyController;
 use App\Controllers\Public\ProfileController;
 use App\Core\Router;
+use App\Middleware\AttendanceRequiredMiddleware;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\CsrfMiddleware;
+use App\Middleware\InternLifecycleGuardMiddleware;
 use App\Middleware\RoleMiddleware;
 use App\Middleware\SecurityHeadersMiddleware;
 
@@ -231,7 +233,7 @@ $router->group([
 // Intern Portal Routes (Role: intern, super_admin)
 $router->group([
     'prefix' => 'intern',
-    'middleware' => [AuthMiddleware::class, new RoleMiddleware('intern', 'super_admin'), CsrfMiddleware::class]
+    'middleware' => [AuthMiddleware::class, new RoleMiddleware('intern', 'super_admin'), InternLifecycleGuardMiddleware::class, CsrfMiddleware::class]
 ], function (Router $r) {
     $r->get('/dashboard', [InternDashboard::class, 'index']);
     
@@ -243,19 +245,19 @@ $router->group([
     // Tasks
     $r->get('/tasks', [InternTasks::class, 'index']);
     $r->get('/tasks/{id}', [InternTasks::class, 'show']);
-    $r->post('/tasks/{id}/start', [InternTasks::class, 'start']);
-    $r->post('/tasks/{id}/submit', [InternTasks::class, 'submit']);
+    $r->post('/tasks/{id}/start', [InternTasks::class, 'start'], [AttendanceRequiredMiddleware::class]);
+    $r->post('/tasks/{id}/submit', [InternTasks::class, 'submit'], [AttendanceRequiredMiddleware::class]);
     $r->post('/tasks/{id}/comment', [InternTasks::class, 'addComment']);
 
     // Academy & Doubts
     $r->get('/academy', [AcademyController::class, 'index']);
     $r->get('/academy/course/{id}', [AcademyController::class, 'course']);
-    $r->post('/academy/content/{id}/complete', [AcademyController::class, 'completeContent']);
+    $r->post('/academy/content/{id}/complete', [AcademyController::class, 'completeContent'], [AttendanceRequiredMiddleware::class]);
     $r->post('/academy/doubt/{id}', [AcademyController::class, 'submitDoubt']);
 
     // Tests
-    $r->get('/tests/{id}', [InternTests::class, 'show']);
-    $r->post('/tests/{id}/submit', [InternTests::class, 'submit']);
+    $r->get('/tests/{id}', [InternTests::class, 'show'], [AttendanceRequiredMiddleware::class]);
+    $r->post('/tests/{id}/submit', [InternTests::class, 'submit'], [AttendanceRequiredMiddleware::class]);
 
     // Portfolio & Certificate
     $r->get('/portfolio', [PortfolioController::class, 'index']);

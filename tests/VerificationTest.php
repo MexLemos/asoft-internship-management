@@ -276,6 +276,123 @@ echo "• Filtro de Precisão GPS: ✔ Rejeitou com precisão de 250m! ('{$degra
 \App\Models\InternDevice::removeDevice($testDeviceId);
 echo "• Limpeza do Dispositivo de Teste: ✔ Removido com sucesso!\n";
 
+// Test 11: Intern Lifecycle Guard Middleware (Alumni Mode, Suspended & Active)
+echo "\n11. Teste de Middlewares de Ciclo de Vida do Estagiário (Alumni & Guardas) ...\n";
+$internUser = \App\Models\User::findById((int)$intern['user_id']);
+\App\Core\Session::set('user', $internUser);
+
+// 11.1 Teste Modo Alumni ('completed'): Apenas Portfólio/Certificado/Dashboard
+$pdo->exec("UPDATE interns SET status = 'completed' WHERE id = {$internId}");
+$_SERVER['REQUEST_METHOD'] = 'GET';
+$_SERVER['REQUEST_URI'] = '/intern/attendance';
+$reqAttendance = new \App\Core\Request();
+$guardMiddleware = new \App\Middleware\InternLifecycleGuardMiddleware();
+$resAlumniAttendance = $guardMiddleware->handle($reqAttendance);
+
+if (!$resAlumniAttendance || $resAlumniAttendance->getStatusCode() !== 302) {
+    throw new RuntimeException("ERRO: Modo Alumni deveria ter bloqueado acesso à marcação de presenças!");
+}
+echo "• Restrição de Presenças no Modo Alumni: ✔ Bloqueado e redirecionado para dashboard!\n";
+
+$_SERVER['REQUEST_URI'] = '/intern/portfolio';
+$reqPortfolio = new \App\Core\Request();
+$resAlumniPortfolio = $guardMiddleware->handle($reqPortfolio);
+if ($resAlumniPortfolio !== null) {
+    throw new RuntimeException("ERRO: Modo Alumni deveria ter permitido consulta ao portfólio!");
+}
+echo "• Acesso ao Portfólio no Modo Alumni: ✔ Autorizado com sucesso (Read-only Alumni)!\n";
+
+// 11.2 Restaurar para estado 'active'
+$pdo->exec("UPDATE interns SET status = 'active' WHERE id = {$internId}");
+$resActive = $guardMiddleware->handle($reqAttendance);
+if ($resActive !== null) {
+    throw new RuntimeException("ERRO: Estagiário ativo deveria ter acesso pleno!");
+}
+echo "• Restauração para Estado Ativo: ✔ Acesso pleno restabelecido!\n";
+
+// Test 12: Permissões Condicionais por Presença Física vs Regime Remoto
+echo "\n12. Teste de Permissões Condicionadas à Presença (AttendanceRequiredMiddleware) ...\n";
+$attReqMiddleware = new \App\Middleware\AttendanceRequiredMiddleware();
+
+// 12.1 Limpar presenças de hoje e configurar regime presencial
+$pdo->exec("DELETE FROM attendance WHERE intern_id = {$internId} AND date = CURRENT_DATE");
+$pdo->exec("UPDATE interns SET work_mode = 'presential', remote_authorized_until = NULL WHERE id = {$internId}");
+
+$_SERVER['REQUEST_METHOD'] = 'POST';
+$_SERVER['REQUEST_URI'] = '/intern/tasks/1/start';
+$_SERVER['HTTP_ACCEPT'] = 'application/json';
+$reqStartTask = new \App\Core\Request();
+$resBlockedTask = $attReqMiddleware->handle($reqStartTask);
+
+if (!$resBlockedTask || $resBlockedTask->getStatusCode() !== 403) {
+    throw new RuntimeException("ERRO: Estagiário sem check-in presencial deveria ter sido bloqueado (403) ao tentar iniciar tarefa!");
+}
+echo "• Bloqueio sem Presença Física (Presencial): ✔ Bloqueado com 403 Forbidden com sucesso!\n";
+
+// 12.2 Regime Remoto Autorizado: Isenção de Presença Física
+$pdo->exec("UPDATE interns SET work_mode = 'remote' WHERE id = {$internId}");
+$resRemoteTask = $attReqMiddleware->handle($reqStartTask);
+
+if ($resRemoteTask !== null) {
+    throw new RuntimeException("ERRO: Estagiário em regime remoto deveria estar isento de marcação presencial para operar tarefas!");
+}
+echo "• Isenção por Regime Remoto (work_mode = remote): ✔ Ação autorizada com sucesso!\n";
+
+// 12.3 Regime Híbrido com Presença Realizada
+$pdo->exec("UPDATE interns SET work_mode = 'hybrid' WHERE id = {$internId}");
+$pdo->exec("INSERT INTO attendance (intern_id, date, check_in_time, status) VALUES ({$internId}, CURRENT_DATE, '08:30:00', 'present')");
+$resPresentTask = $attReqMiddleware->handle($reqStartTask);
+
+if ($resPresentTask !== null) {
+    throw new RuntimeException("ERRO: Estagiário com presença registada hoje deveria estar autorizado!");
+}
+echo "• Ação com Presença Presencial Concluída: ✔ Autorizada com sucesso!\n";
+
+// Restaurar configuração padrão
+$pdo->exec("UPDATE interns SET work_mode = 'presential' WHERE id = {$internId}");
+
+// Test 13: Isolamento Multitenant (Supervisor e Instituição)
+echo "\n13. Teste de Isolamento Multitenant Horizontal ...\n";
+// 13.1 Supervisor A tentando avaliar competência de estagiário de Supervisor B
+$compController = new \App\Controllers\Supervisor\CompetenciesController();
+$otherSupervisorUser = [
+    'id' => 999999, // ID diferente do supervisor do estagiário
+    'username' => 'supervisor.estranho',
+    'roles' => ['supervisor'],
+    'status' => 'active'
+];
+\App\Core\Session::set('user', $otherSupervisorUser);
+
+$_SERVER['REQUEST_METHOD'] = 'POST';
+$_SERVER['REQUEST_URI'] = "/supervisor/competencies/evaluate/{$internId}";
+$reqComp = new \App\Core\Request();
+$resCompBlocked = $compController->save($reqComp, (string)$internId);
+
+if ($resCompBlocked->getStatusCode() !== 302) {
+    throw new RuntimeException("ERRO: Supervisor não autorizado conseguiu aceder à avaliação de estagiário alheio!");
+}
+echo "• Isolamento Multitenant Supervisor: ✔ Bloqueou avaliação indevida de outro supervisor!\n";
+
+// 13.2 Instituição A tentando aceder a aluno de Instituição B
+$instController = new \App\Controllers\Institution\DashboardController();
+$otherInstitutionUser = [
+    'id' => 888888,
+    'username' => 'instituicao.estranha',
+    'roles' => ['institution'],
+    'status' => 'active'
+];
+\App\Core\Session::set('user', $otherInstitutionUser);
+
+$_SERVER['REQUEST_METHOD'] = 'GET';
+$_SERVER['REQUEST_URI'] = "/institution/interns/{$internId}";
+$reqInst = new \App\Core\Request();
+$resInstBlocked = $instController->showIntern($reqInst, (string)$internId);
+
+if ($resInstBlocked->getStatusCode() !== 302) {
+    throw new RuntimeException("ERRO: Instituição externa conseguiu aceder a dados de aluno de outra universidade!");
+}
+echo "• Isolamento Multitenant Instituição de Ensino: ✔ Bloqueou acesso a aluno de outra instituição!\n";
+
 echo "\n========================================================\n";
 echo "TODOS OS TESTES DE INTEGRAÇÃO PASSARAM COM 100% DE SUCESSO!\n";
 echo "========================================================\n";
