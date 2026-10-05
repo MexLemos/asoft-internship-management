@@ -61,8 +61,10 @@ class GeolocationAttendance {
         if (this.formManualQr) {
             this.formManualQr.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const token = this.inputQrToken.value.trim();
+                const raw = this.inputQrToken.value.trim();
+                const token = this.extractToken(raw);
                 if (token) {
+                    this.inputQrToken.value = token;
                     this.sendAttendancePayload(this.currentAction, {
                         qr_token: token,
                         device_uuid: this.deviceId
@@ -96,6 +98,25 @@ class GeolocationAttendance {
             localStorage.setItem('as_intern_device_uuid', id);
         }
         return id;
+    }
+
+    /**
+     * Extrai o hash do token caso seja lido um URL completo da câmara ou colado no input.
+     */
+    extractToken(input) {
+        if (!input) return '';
+        input = input.trim();
+        if (input.includes('token=')) {
+            try {
+                const url = new URL(input);
+                const t = url.searchParams.get('token');
+                if (t) return t.trim();
+            } catch (e) {
+                const match = input.match(/[?&]token=([^&]+)/);
+                if (match) return decodeURIComponent(match[1]).trim();
+            }
+        }
+        return input;
     }
 
     /**
@@ -239,9 +260,10 @@ class GeolocationAttendance {
             (decodedText) => {
                 // Ao detectar com sucesso o QR Code rotativo
                 this.stopCameraScanner();
-                this.inputQrToken.value = decodedText;
+                const token = this.extractToken(decodedText);
+                this.inputQrToken.value = token;
                 this.sendAttendancePayload(this.currentAction, {
-                    qr_token: decodedText,
+                    qr_token: token,
                     device_uuid: this.deviceId
                 }, true);
             },

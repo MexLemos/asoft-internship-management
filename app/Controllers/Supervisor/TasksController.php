@@ -22,7 +22,7 @@ class TasksController extends Controller
         $user = Session::get('user');
         $tasks = Task::all();
         $categories = TaskCategory::all();
-        $interns = Intern::all((int)$user['id']);
+        $interns = Intern::all();
 
         return $this->render('supervisor.tasks.index', [
             'title' => 'Gestão e Atribuição de Tarefas - Asoftmedia',
@@ -134,9 +134,9 @@ class TasksController extends Controller
         $dueDate = $data['due_date'];
 
         if ($assignType === 'all') {
-            // Bulk assign to all supervised interns
-            $supervisedInterns = Intern::all((int)$user['id']);
-            $internIds = array_column($supervisedInterns, 'id');
+            // Bulk assign to all interns
+            $allInterns = Intern::all();
+            $internIds = array_column($allInterns, 'id');
 
             $assignedCount = TaskAssignment::assignBulk($taskId, $internIds, (int)$user['id'], $startDate, $dueDate);
 
@@ -176,16 +176,6 @@ class TasksController extends Controller
             return $this->redirect('/supervisor/tasks');
         }
 
-        $user = Session::get('user');
-        $userRoles = $user['roles'] ?? [];
-        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
-        $intern = Intern::findById((int)$assignment['intern_id']);
-
-        if (!$isStaffAdmin && (int)($intern['supervisor_id'] ?? 0) !== (int)$user['id'] && (int)$assignment['assigned_by'] !== (int)$user['id']) {
-            Session::flash('error', 'Acesso negado: Não tem permissão para aceder a tarefas de estagiários de outro supervisor.');
-            return $this->redirect('/supervisor/tasks');
-        }
-
         return $this->render('supervisor.tasks.review', [
             'title' => 'Avaliar Submissão: ' . $assignment['title'],
             'assignment' => $assignment
@@ -202,14 +192,6 @@ class TasksController extends Controller
         }
 
         $user = Session::get('user');
-        $userRoles = $user['roles'] ?? [];
-        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
-        $intern = Intern::findById((int)$assignment['intern_id']);
-
-        if (!$isStaffAdmin && (int)($intern['supervisor_id'] ?? 0) !== (int)$user['id'] && (int)$assignment['assigned_by'] !== (int)$user['id']) {
-            Session::flash('error', 'Acesso negado: Não tem permissão para avaliar tarefas de estagiários de outro supervisor.');
-            return $this->redirect('/supervisor/tasks');
-        }
 
         $data = $request->all();
         $status = $data['status'] ?? 'approved';
@@ -241,14 +223,6 @@ class TasksController extends Controller
         }
 
         $user = Session::get('user');
-        $userRoles = $user['roles'] ?? [];
-        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
-        $intern = Intern::findById((int)$assignment['intern_id']);
-
-        if (!$isStaffAdmin && (int)($intern['supervisor_id'] ?? 0) !== (int)$user['id'] && (int)$assignment['assigned_by'] !== (int)$user['id']) {
-            Session::flash('error', 'Acesso negado: Não pode comentar tarefas de estagiários de outro supervisor.');
-            return $this->redirect('/supervisor/tasks');
-        }
 
         $comment = trim((string)$request->input('comment', ''));
         if (!empty($comment)) {

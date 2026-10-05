@@ -31,35 +31,108 @@ class DynamicQrAttendanceService
         $existing = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($existing) {
-            $secondsRemaining = max(0, strtotime($existing['expires_at']) - time());
+            $activeHash = $existing['token_hash'];
+            $activeExpiresAt = $existing['expires_at'];
+            $activeSecondsRemaining = max(0, strtotime($existing['expires_at']) - time());
+        } else {
+            // Gerar novo token rotativo TOTP
+            $seed = bin2hex(random_bytes(16));
+            $activeExpiresAt = date('Y-m-d H:i:s', time() + self::TOKEN_VALIDITY_SECONDS);
+            $activeHash = hash('sha256', $seed . '|' . $activeExpiresAt . '|' . ($generatedBy ?? 1));
+            $activeSecondsRemaining = self::TOKEN_VALIDITY_SECONDS;
+
+            $insert = $pdo->prepare("
+                INSERT INTO dynamic_attendance_tokens (token_hash, token_seed, generated_by, expires_at)
+                VALUES (?, ?, ?, ?)
+            ");
+            $insert->execute([$activeHash, $seed, $generatedBy, $activeExpiresAt]);
+
+            // Limpeza assíncrona de tokens expirados há mais de 1 hora
+            $pdo->exec("DELETE FROM dynamic_attendance_tokens WHERE expires_at < DATE_SUB(NOW(), INTERVAL 1 HOUR)");
+        }
+
+        $scanUrl = $this->getScanUrl($activeHash);
+
+        return [
+            'token_hash' => $activeHash,
+            'scan_url' => $scanUrl,
+            'short_code' => strtoupper(substr($activeHash, 0, 6)),
+            'expires_at' => $activeExpiresAt,
+            'seconds_remaining' => $activeSecondsRemaining,
+            'qr_data_url' => $this->generateQrImage($scanUrl)
+        ];
+    }
+
+    /**
+     * Constrói o URL de leitura móvel direto a partir do hash do token.
+     */
+    public function getScanUrl(string $tokenHash): string
+    {
+        $baseUrl = rtrim($_ENV['APP_URL'] ?? '', '/');
+        if (empty($baseUrl) && isset($_SERVER['HTTP_HOST'])) {
+            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'];
+        }
+        if (empty($baseUrl)) {
+            $baseUrl = 'https://estagio.softmedia-ao.com';
+        }
+        return $baseUrl . '/attendance/scan?token=' . urlencode($tokenHash);
+    }
+
+    /**
+     * Valida se um token é autêntico e ainda está dentro da janela de validade (sem consumir).
+     */
+    public function validateOnly(string $tokenHash): array
+    {
+        $tokenHash = $this->extractTokenHash($tokenHash);
+        if (empty($tokenHash)) {
             return [
-                'token_hash' => $existing['token_hash'],
-                'expires_at' => $existing['expires_at'],
-                'seconds_remaining' => $secondsRemaining,
-                'qr_data_url' => $this->generateQrImage($existing['token_hash'])
+                'valid' => false,
+                'message' => 'Código QR não fornecido.'
             ];
         }
 
-        // 2. Gerar novo token rotativo TOTP
-        $seed = bin2hex(random_bytes(16));
-        $expiresAt = date('Y-m-d H:i:s', time() + self::TOKEN_VALIDITY_SECONDS);
-        $tokenHash = hash('sha256', $seed . '|' . $expiresAt . '|' . ($generatedBy ?? 1));
+        $pdo = Database::getConnection();
+        $now = date('Y-m-d H:i:s');
 
-        $insert = $pdo->prepare("
-            INSERT INTO dynamic_attendance_tokens (token_hash, token_seed, generated_by, expires_at)
-            VALUES (?, ?, ?, ?)
+        $stmt = $pdo->prepare("
+            SELECT * FROM dynamic_attendance_tokens 
+            WHERE token_hash = ? AND expires_at >= ?
+            LIMIT 1
         ");
-        $insert->execute([$tokenHash, $seed, $generatedBy, $expiresAt]);
+        $stmt->execute([$tokenHash, $now]);
+        $token = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Limpeza assíncrona de tokens expirados há mais de 1 hora
-        $pdo->exec("DELETE FROM dynamic_attendance_tokens WHERE expires_at < DATE_SUB(NOW(), INTERVAL 1 HOUR)");
+        if (!$token) {
+            return [
+                'valid' => false,
+                'message' => 'O código QR expirou ou é inválido. Aponte a câmara novamente para o monitor da sede.'
+            ];
+        }
 
         return [
-            'token_hash' => $tokenHash,
-            'expires_at' => $expiresAt,
-            'seconds_remaining' => self::TOKEN_VALIDITY_SECONDS,
-            'qr_data_url' => $this->generateQrImage($tokenHash)
+            'valid' => true,
+            'token' => $token,
+            'message' => 'Código QR ativo e válido no terminal da sede.'
         ];
+    }
+
+    /**
+     * Extrai o hash do token caso o payload lido seja um URL completo.
+     */
+    public function extractTokenHash(string $input): string
+    {
+        $input = trim($input);
+        if (str_contains($input, 'token=')) {
+            $queryStr = parse_url($input, PHP_URL_QUERY);
+            if (!empty($queryStr)) {
+                parse_str($queryStr, $params);
+                if (!empty($params['token'])) {
+                    return trim((string)$params['token']);
+                }
+            }
+        }
+        return $input;
     }
 
     /**
@@ -67,7 +140,7 @@ class DynamicQrAttendanceService
      */
     public function validateAndRedeem(string $tokenHash, int $internId): array
     {
-        $tokenHash = trim($tokenHash);
+        $tokenHash = $this->extractTokenHash($tokenHash);
         if (empty($tokenHash)) {
             return [
                 'valid' => false,

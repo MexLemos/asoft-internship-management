@@ -19,10 +19,10 @@ class DashboardController extends Controller
         $user = Session::get('user');
         $supervisorId = (int)$user['id'];
 
-        $interns = Intern::all($supervisorId);
+        $interns = Intern::all();
         $pdo = Database::getConnection();
 
-        // Pending Submissions to Review
+        // Pending Submissions to Review across all interns
         $stmtPending = $pdo->prepare("
             SELECT ta.*, t.title, t.priority, t.points, i.full_name as intern_name, i.internship_code,
                    ts.github_repo_url, ts.github_pr_url, ts.submitted_at
@@ -30,10 +30,10 @@ class DashboardController extends Controller
             INNER JOIN tasks t ON t.id = ta.task_id
             INNER JOIN interns i ON i.id = ta.intern_id
             LEFT JOIN task_submissions ts ON ts.assignment_id = ta.id
-            WHERE i.supervisor_id = ? AND ta.status IN ('submitted', 'in_review')
+            WHERE ta.status IN ('submitted', 'in_review')
             ORDER BY ts.submitted_at ASC
         ");
-        $stmtPending->execute([$supervisorId]);
+        $stmtPending->execute();
         $pendingReviews = $stmtPending->fetchAll();
 
         return $this->render('supervisor.dashboard', [

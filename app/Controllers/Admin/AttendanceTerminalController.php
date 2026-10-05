@@ -29,10 +29,15 @@ class AttendanceTerminalController extends Controller
         $user = Session::get('user');
         $tokenData = $this->qrService->getCurrentTerminalToken($user ? (int)$user['id'] : null);
 
+        $path = $request->getPath();
+        $isSupervisor = str_starts_with($path, '/supervisor');
+        $layout = $isSupervisor ? 'supervisor' : 'admin';
+
         return $this->render('admin.attendance.terminal', [
             'title' => 'Terminal de Presença Dinâmica - Asoftmedia',
-            'tokenData' => $tokenData
-        ], 'admin');
+            'tokenData' => $tokenData,
+            'isSupervisor' => $isSupervisor
+        ], $layout);
     }
 
     /**
@@ -46,6 +51,8 @@ class AttendanceTerminalController extends Controller
         return (new Response())->json([
             'success' => true,
             'token_hash' => $tokenData['token_hash'],
+            'scan_url' => $tokenData['scan_url'] ?? '',
+            'short_code' => $tokenData['short_code'] ?? '',
             'qr_data_url' => $tokenData['qr_data_url'],
             'seconds_remaining' => $tokenData['seconds_remaining'],
             'expires_at' => $tokenData['expires_at']

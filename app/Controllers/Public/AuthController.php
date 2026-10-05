@@ -27,8 +27,11 @@ class AuthController extends Controller
             return $this->redirect($route);
         }
 
+        $redirect = $request->input('redirect');
+
         return $this->render('auth.login', [
-            'title' => 'Iniciar Sessão - Asoftmedia'
+            'title' => 'Iniciar Sessão - Asoftmedia',
+            'redirect' => $redirect
         ], 'auth');
     }
 
@@ -36,20 +39,26 @@ class AuthController extends Controller
     {
         $identifier = trim((string)$request->input('identifier', ''));
         $password = (string)$request->input('password', '');
+        $redirect = trim((string)$request->input('redirect', ''));
 
         if (empty($identifier) || empty($password)) {
             Session::flash('error', 'Por favor, preencha o utilizador/email e a palavra-passe.');
-            return $this->redirect('/login');
+            return $this->redirect('/login' . (!empty($redirect) ? '?redirect=' . urlencode($redirect) : ''));
         }
 
         $result = $this->authService->attempt($identifier, $password, $request->ip());
 
         if (!$result['success']) {
             Session::flash('error', $result['message']);
-            return $this->redirect('/login');
+            return $this->redirect('/login' . (!empty($redirect) ? '?redirect=' . urlencode($redirect) : ''));
         }
 
         Session::flash('success', 'Bem-vindo de volta, ' . htmlspecialchars($result['user']['name']) . '!');
+
+        if (!empty($redirect) && str_starts_with($redirect, '/') && !str_starts_with($redirect, '//')) {
+            return $this->redirect($redirect);
+        }
+
         return $this->redirect($result['redirect']);
     }
 

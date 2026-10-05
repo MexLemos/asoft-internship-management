@@ -347,6 +347,11 @@ class InternsController extends Controller
         $data['supervisor_id'] = (int)$user['id'];
 
         \App\Models\MentorshipLog::create($data);
+
+        // Recalculate and update intern cumulative score
+        $scoring = new \App\Services\PerformanceScoringEngine();
+        $scoring->calculateForIntern($internId);
+
         AuditLog::log('mentorship_log_create', 'mentorship', $internId, null, [
             'title' => $data['title'],
             'type' => $data['session_type']

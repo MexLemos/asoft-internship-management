@@ -25,13 +25,10 @@ class InternsController extends Controller
 {
     public function index(Request $request): Response
     {
-        $user         = Session::get('user');
-        $supervisorId = (int)$user['id'];
-
-        $interns = Intern::all($supervisorId);
+        $interns = Intern::all();
 
         return $this->render('supervisor.interns.index', [
-            'title'   => 'Meus Estagiários - Asoftmedia',
+            'title'   => 'Estagiários - Asoftmedia',
             'interns' => $interns,
         ], 'supervisor');
     }
@@ -44,11 +41,8 @@ class InternsController extends Controller
 
         $intern = Intern::findById($internId);
 
-        $userRoles = $user['roles'] ?? [];
-        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
-
-        if (!$intern || (!$isStaffAdmin && (int)$intern['supervisor_id'] !== $supervisorId)) {
-            Session::flash('error', 'Estagiário não encontrado ou sem permissão de acesso.');
+        if (!$intern) {
+            Session::flash('error', 'Estagiário não encontrado.');
             return $this->redirect('/supervisor/interns');
         }
 
@@ -146,11 +140,9 @@ class InternsController extends Controller
         $supervisorId = (int)$user['id'];
 
         $intern = Intern::findById($internId);
-        $userRoles = $user['roles'] ?? [];
-        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
 
-        if (!$intern || (!$isStaffAdmin && (int)$intern['supervisor_id'] !== $supervisorId)) {
-            Session::flash('error', 'Estagiário não encontrado ou sem permissão de acesso.');
+        if (!$intern) {
+            Session::flash('error', 'Estagiário não encontrado.');
             return $this->redirect('/supervisor/interns');
         }
 
@@ -171,6 +163,11 @@ class InternsController extends Controller
         $data['supervisor_id'] = $supervisorId;
 
         \App\Models\MentorshipLog::create($data);
+
+        // Recalculate and update intern cumulative performance score
+        $scoring = new PerformanceScoringEngine();
+        $scoring->calculateForIntern($internId);
+
         \App\Models\AuditLog::log('mentorship_log_create', 'mentorship', $internId, null, [
             'title' => $data['title'],
             'type' => $data['session_type']
@@ -187,11 +184,9 @@ class InternsController extends Controller
         $supervisorId = (int)$user['id'];
 
         $intern = Intern::findById($internId);
-        $userRoles = $user['roles'] ?? [];
-        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
 
-        if (!$intern || (!$isStaffAdmin && (int)$intern['supervisor_id'] !== $supervisorId)) {
-            Session::flash('error', 'Estagiário não encontrado ou sem permissão de acesso.');
+        if (!$intern) {
+            Session::flash('error', 'Estagiário não encontrado.');
             return $this->redirect('/supervisor/interns');
         }
 

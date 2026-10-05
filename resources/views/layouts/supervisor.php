@@ -26,12 +26,15 @@
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/interns') ? 'active' : '' ?>" href="/supervisor/interns">
-                    <i class="bi bi-people-fill"></i> Meus Estagiários
+                    <i class="bi bi-people-fill"></i> Estagiários
+                </a>
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/mentorship') ? 'active' : '' ?>" href="/supervisor/mentorship">
+                    <i class="bi bi-chat-heart-fill"></i> Mentorias (1-on-1)
                 </a>
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/tasks') ? 'active' : '' ?>" href="/supervisor/tasks">
                     <i class="bi bi-list-task"></i> Gestão de Tarefas
                 </a>
-                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/attendance/terminal') ? 'active' : '' ?>" href="/supervisor/attendance/terminal">
+                <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/attendance/terminal') ? 'active' : '' ?>" href="/supervisor/attendance/terminal">
                     <i class="bi bi-qr-code-scan"></i> Terminal de Ponto (QR)
                 </a>
                 <a class="nav-link <?= str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/supervisor/competencies') ? 'active' : '' ?>" href="/supervisor/competencies">

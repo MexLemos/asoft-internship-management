@@ -67,6 +67,10 @@ $router->get('/validar/{hash}', [CertificateValidationController::class, 'valida
 // Dynamic Attendance Terminal Token API
 $router->get('/api/attendance/token', [\App\Controllers\Admin\AttendanceTerminalController::class, 'tokenApi']);
 
+// Dynamic Attendance Terminal QR Scan & Mobile Confirmation
+$router->get('/attendance/scan', [\App\Controllers\Public\AttendanceScanController::class, 'index']);
+$router->post('/attendance/scan/confirm', [\App\Controllers\Public\AttendanceScanController::class, 'confirm'], [CsrfMiddleware::class]);
+
 // GitHub Webhooks (PR Lifecycle & Automated Task Review Sync)
 $router->post('/api/webhooks/github', [\App\Controllers\Public\GithubWebhookController::class, 'handle']);
 
@@ -229,6 +233,15 @@ $router->group([
     $r->get('/interns/{id}', [\App\Controllers\Supervisor\InternsController::class, 'show']);
     $r->post('/interns/{id}/change-status', [\App\Controllers\Supervisor\InternsController::class, 'changeStatus']);
     $r->post('/interns/{id}/mentorship/store', [\App\Controllers\Supervisor\InternsController::class, 'storeMentorshipLog']);
+
+    // Mentorias (1-on-1) & Acompanhamento
+    $r->get('/mentorship', [\App\Controllers\Supervisor\MentorshipController::class, 'index']);
+    $r->get('/mentorship/create', [\App\Controllers\Supervisor\MentorshipController::class, 'create']);
+    $r->post('/mentorship/store', [\App\Controllers\Supervisor\MentorshipController::class, 'store']);
+    $r->get('/mentorship/{id}', [\App\Controllers\Supervisor\MentorshipController::class, 'show']);
+    $r->get('/mentorship/{id}/edit', [\App\Controllers\Supervisor\MentorshipController::class, 'edit']);
+    $r->post('/mentorship/{id}/update', [\App\Controllers\Supervisor\MentorshipController::class, 'update']);
+    $r->post('/mentorship/{id}/delete', [\App\Controllers\Supervisor\MentorshipController::class, 'delete']);
 
     // Attendance Terminal
     $r->get('/attendance/terminal', [\App\Controllers\Admin\AttendanceTerminalController::class, 'terminal']);

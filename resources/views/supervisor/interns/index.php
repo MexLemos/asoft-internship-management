@@ -1,7 +1,7 @@
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
     <div>
-        <h4 class="fw-bold mb-1">Meus Estagiários</h4>
-        <p class="text-muted small mb-0">Acompanhe o desempenho, frequência e evolução dos estagiários sob a sua orientação.</p>
+        <h4 class="fw-bold mb-1">Estagiários</h4>
+        <p class="text-muted small mb-0">Acompanhe o desempenho, assiduidade, matriz de competências e mentorias de todos os estagiários da Asoftmedia.</p>
     </div>
 </div>
 
@@ -9,8 +9,8 @@
     <div class="card shadow-sm border-0">
         <div class="card-body p-5 text-center text-muted">
             <i class="bi bi-people display-4 text-primary mb-3"></i>
-            <h5>Nenhum estagiário atribuído a si.</h5>
-            <p class="small">Quando forem atribuídos estagiários, aparecerão aqui.</p>
+            <h5>Nenhum estagiário registado no sistema.</h5>
+            <p class="small">Quando forem registados novos estagiários, aparecerão aqui para acompanhamento por todos os supervisores.</p>
         </div>
     </div>
 <?php else: ?>

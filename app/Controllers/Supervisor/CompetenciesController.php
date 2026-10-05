@@ -17,10 +17,7 @@ class CompetenciesController extends Controller
 {
     public function index(Request $request): Response
     {
-        $user = Session::get('user');
-        $userRoles = $user['roles'] ?? [];
-        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
-        $interns = Intern::all($isStaffAdmin ? null : (int)$user['id']);
+        $interns = Intern::all();
 
         return $this->render('supervisor.competencies.index', [
             'title' => 'Avaliação de Competências dos Estagiários - Asoftmedia',
@@ -34,15 +31,6 @@ class CompetenciesController extends Controller
         $intern = Intern::findById($id);
         if (!$intern) {
             Session::flash('error', 'Estagiário não encontrado.');
-            return $this->redirect('/supervisor/competencies');
-        }
-
-        $user = Session::get('user');
-        $userRoles = $user['roles'] ?? [];
-        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
-
-        if (!$isStaffAdmin && (int)$intern['supervisor_id'] !== (int)$user['id']) {
-            Session::flash('error', 'Acesso negado: Este estagiário não está atribuído à sua supervisão.');
             return $this->redirect('/supervisor/competencies');
         }
 
@@ -65,13 +53,6 @@ class CompetenciesController extends Controller
         }
 
         $user = Session::get('user');
-        $userRoles = $user['roles'] ?? [];
-        $isStaffAdmin = in_array('super_admin', $userRoles, true) || in_array('admin', $userRoles, true);
-
-        if (!$isStaffAdmin && (int)$intern['supervisor_id'] !== (int)$user['id']) {
-            Session::flash('error', 'Acesso negado: Não tem permissão para avaliar estagiários de outro supervisor.');
-            return $this->redirect('/supervisor/competencies');
-        }
 
         $data = $request->all();
         $levels = (array)($data['levels'] ?? []);

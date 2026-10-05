@@ -31,6 +31,9 @@
 
         <form action="/login" method="POST">
             <?= \App\Helpers\csrf_field() ?>
+            <?php if (!empty($redirect)): ?>
+                <input type="hidden" name="redirect" value="<?= \App\Helpers\e($redirect) ?>">
+            <?php endif; ?>
 
             <div class="mb-3">
                 <label for="identifier" class="form-label small fw-semibold">Email ou Nome de Utilizador</label>
