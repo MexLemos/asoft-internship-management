@@ -191,6 +191,43 @@ class DatabaseAutoMigrator
                 $applied[] = '018_attendance_precision_devices_and_qr.sql';
             }
 
+            // 3. Verificações de Suporte a Candidaturas Singulares (Migration 019)
+            try {
+                $checkNullable = $pdo->query("
+                    SELECT IS_NULLABLE 
+                    FROM information_schema.COLUMNS 
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                      AND TABLE_NAME = 'interns' 
+                      AND COLUMN_NAME = 'institution_id'
+                ")->fetchColumn();
+
+                if ($checkNullable === 'NO') {
+                    $pdo->exec("ALTER TABLE interns MODIFY COLUMN institution_id BIGINT UNSIGNED NULL");
+                    self::recordMigration($pdo, '019_make_interns_institution_id_nullable.sql');
+                    $applied[] = '019_make_interns_institution_id_nullable.sql';
+                }
+            } catch (Throwable $e) {
+                error_log("AutoMigrator: Falha ao tornar institution_id nullable: " . $e->getMessage());
+            }
+
+            // Garantir que a instituição 'Singular (Candidatura Particular)' existe caso seja referenciada
+            try {
+                $hasSingular = (int)$pdo->query("
+                    SELECT COUNT(*) FROM institutions 
+                    WHERE name LIKE 'Singular%' OR nif = 'SINGULAR'
+                ")->fetchColumn();
+
+                if ($hasSingular === 0) {
+                    $pdo->exec("
+                        INSERT INTO institutions (name, nif, email, phone, address, city, type, status) 
+                        VALUES ('Singular (Candidatura Particular)', 'SINGULAR', 'singular@asoftmedia-ao.com', 'N/D', 'Luanda', 'Luanda', 'other', 'active')
+                    ");
+                    $applied[] = 'institution_singular_created';
+                }
+            } catch (Throwable $e) {
+                error_log("AutoMigrator: Falha ao criar instituição Singular: " . $e->getMessage());
+            }
+
             self::$checked = true;
 
             return [

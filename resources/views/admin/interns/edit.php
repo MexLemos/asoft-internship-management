@@ -87,15 +87,22 @@ if (!in_array($intern['course'], $standardCourses, true) && !empty($intern['cust
                     <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">2. Dados Académicos & Vinculação Institucional</h6>
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Instituição de Ensino de Origem *</label>
-                            <select name="institution_id" class="form-select" required>
-                                <option value="">Selecione a instituição...</option>
-                                <?php foreach ($institutions as $inst): ?>
-                                    <option value="<?= $inst['id'] ?>" <?= (int)$intern['institution_id'] === (int)$inst['id'] ? 'selected' : '' ?>>
-                                        <?= \App\Helpers\e($inst['name']) ?>
-                                    </option>
-                                <?php endforeach; ?>
+                            <label class="form-label small fw-semibold">Instituição de Ensino de Origem / Vínculo</label>
+                            <select name="institution_id" class="form-select">
+                                <option value="singular" class="fw-bold text-primary" <?= (empty($intern['institution_id']) || ($intern['institution_name'] ?? '') === 'Singular') ? 'selected' : '' ?>>
+                                    👤 Singular (Candidatura Particular / Sem Instituição)
+                                </option>
+                                <optgroup label="Instituições de Ensino Registadas">
+                                    <?php foreach ($institutions as $inst): ?>
+                                        <option value="<?= $inst['id'] ?>" <?= (!empty($intern['institution_id']) && (int)$intern['institution_id'] === (int)$inst['id']) ? 'selected' : '' ?>>
+                                            <?= \App\Helpers\e($inst['name']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </optgroup>
                             </select>
+                            <div class="form-text small">
+                                Selecione "Singular" se o estagiário for independente ou se desejar desvincular da instituição anterior.
+                            </div>
                         </div>
 
                         <div class="col-md-6">

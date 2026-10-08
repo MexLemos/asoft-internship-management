@@ -53,13 +53,17 @@
                     <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">2. Dados Académicos & Vinculação Institucional</h6>
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Instituição de Ensino de Origem *</label>
-                            <select name="institution_id" class="form-select" required>
-                                <option value="">Selecione a instituição...</option>
-                                <?php foreach ($institutions as $inst): ?>
-                                    <option value="<?= $inst['id'] ?>"><?= \App\Helpers\e($inst['name']) ?></option>
-                                <?php endforeach; ?>
+                            <label class="form-label small fw-semibold">Instituição de Ensino de Origem / Vínculo</label>
+                            <select name="institution_id" class="form-select">
+                                <option value="singular" selected class="fw-bold text-primary">👤 Singular (Candidatura Particular / Sem Instituição)</option>
+                                <option value="">-- Selecione caso pertença a uma Instituição --</option>
+                                <optgroup label="Instituições de Ensino Parceiras">
+                                    <?php foreach ($institutions as $inst): ?>
+                                        <option value="<?= $inst['id'] ?>"><?= \App\Helpers\e($inst['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </optgroup>
                             </select>
+                            <div class="form-text small">Selecione "Singular" para candidatos autodidatas ou sem vínculo escolar formal.</div>
                         </div>
 
                         <div class="col-md-6">

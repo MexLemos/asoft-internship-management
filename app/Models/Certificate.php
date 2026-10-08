@@ -23,10 +23,10 @@ class Certificate
         $pdo = Database::getConnection();
         $stmt = $pdo->prepare("
             SELECT cert.*, i.full_name as intern_name, i.course, i.internship_area, i.start_date, i.end_date,
-                   inst.name as institution_name
+                   COALESCE(inst.name, 'Candidatura Singular') as institution_name
             FROM certificates cert
             INNER JOIN interns i ON i.id = cert.intern_id
-            INNER JOIN institutions inst ON inst.id = i.institution_id
+            LEFT JOIN institutions inst ON inst.id = i.institution_id
             WHERE cert.validation_hash = ? OR cert.certificate_code = ?
             LIMIT 1
         ");

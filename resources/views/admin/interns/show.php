@@ -69,9 +69,17 @@
                         <span class="text-muted">Área de Estágio:</span>
                         <strong><?= \App\Helpers\e($intern['internship_area'] ?? 'Geral') ?></strong>
                     </li>
-                    <li class="list-group-item d-flex justify-content-between">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span class="text-muted">Instituição:</span>
-                        <strong class="text-end"><?= \App\Helpers\e($intern['institution_name']) ?></strong>
+                        <?php if (empty($intern['institution_id']) || $intern['institution_name'] === 'Singular'): ?>
+                            <span class="badge bg-secondary-subtle text-secondary border">
+                                <i class="bi bi-person me-1"></i> Singular (Particular)
+                            </span>
+                        <?php else: ?>
+                            <strong class="text-end text-primary">
+                                <i class="bi bi-building me-1"></i><?= \App\Helpers\e($intern['institution_name']) ?>
+                            </strong>
+                        <?php endif; ?>
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
                         <span class="text-muted">Supervisor:</span>

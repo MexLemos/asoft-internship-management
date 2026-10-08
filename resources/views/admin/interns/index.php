@@ -110,9 +110,15 @@
                                     <span><?= \App\Helpers\e($i['course']) ?></span><br>
                                     <span class="badge bg-light text-dark border"><?= \App\Helpers\e($i['formation_level'] ?? '13ª') ?></span>
                                     <span class="badge bg-secondary"><?= \App\Helpers\e($i['internship_area'] ?? 'Geral') ?></span>
+                                <td>
+                                    <?php if (empty($i['institution_id']) || ($i['institution_name'] ?? '') === 'Singular'): ?>
+                                        <span class="badge bg-secondary-subtle text-secondary border">
+                                            <i class="bi bi-person me-1"></i>Singular
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="text-dark fw-medium"><?= \App\Helpers\e($i['institution_name']) ?></span>
+                                    <?php endif; ?>
                                 </td>
-                                <td><?= \App\Helpers\e($i['institution_name']) ?></td>
-                                <td><?= \App\Helpers\format_date($i['start_date']) ?></td>
                                 <td>
                                     <strong><?= \App\Helpers\format_date($i['end_date']) ?></strong>
                                     <div class="text-muted" style="font-size: 10px;">Sexta-feira</div>

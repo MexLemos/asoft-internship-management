@@ -22,6 +22,7 @@ use App\Controllers\Intern\TasksController as InternTasks;
 use App\Controllers\Intern\TestsController as InternTests;
 use App\Controllers\Public\AuthController;
 use App\Controllers\Public\CertificateValidationController;
+use App\Controllers\Public\LandingPageController;
 use App\Controllers\Public\NotificationsController;
 use App\Controllers\Public\PasswordResetController;
 use App\Controllers\Public\PrivacyController;
@@ -37,15 +38,7 @@ use App\Middleware\SecurityHeadersMiddleware;
 /** @var Router $router */
 
 // Public / Landing
-$router->get('/', function ($request) {
-    if (\App\Helpers\auth_check()) {
-        $user = \App\Helpers\auth_user();
-        $authService = new \App\Services\AuthService();
-        $route = $authService->determineHomeRoute($user['roles'] ?? []);
-        return (new \App\Core\Response())->redirect($route);
-    }
-    return (new \App\Core\Response())->redirect('/login');
-});
+$router->get('/', [LandingPageController::class, 'index']);
 
 // Authentication
 $router->get('/login', [AuthController::class, 'showLogin']);

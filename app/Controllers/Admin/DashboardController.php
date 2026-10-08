@@ -73,10 +73,10 @@ class DashboardController extends Controller
 
         // 7. Today's GPS Attendance Feed
         $todayAttendance = $pdo->query("
-            SELECT a.*, i.full_name, i.internship_code, inst.name as institution_name
+            SELECT a.*, i.full_name, i.internship_code, COALESCE(inst.name, 'Singular') as institution_name
             FROM attendance a
             INNER JOIN interns i ON i.id = a.intern_id
-            INNER JOIN institutions inst ON inst.id = i.institution_id
+            LEFT JOIN institutions inst ON inst.id = i.institution_id
             WHERE a.date = CURDATE()
             ORDER BY a.check_in_time DESC
             LIMIT 8

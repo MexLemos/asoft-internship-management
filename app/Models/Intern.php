@@ -79,8 +79,12 @@ class Intern
         }
 
         if ($institutionId !== null) {
-            $where[] = "i.institution_id = ?";
-            $params[] = $institutionId;
+            if ($institutionId === 'singular' || $institutionId === 0) {
+                $where[] = "i.institution_id IS NULL";
+            } else {
+                $where[] = "i.institution_id = ?";
+                $params[] = (int)$institutionId;
+            }
         }
 
         $whereClause = implode(" AND ", $where);
@@ -89,7 +93,7 @@ class Intern
         $countSql = "
             SELECT COUNT(*) 
             FROM interns i
-            INNER JOIN institutions inst ON inst.id = i.institution_id
+            LEFT JOIN institutions inst ON inst.id = i.institution_id
             INNER JOIN users u ON u.id = i.user_id
             WHERE {$whereClause}
         ";
@@ -100,7 +104,7 @@ class Intern
         // Query records
         $sql = "
             SELECT i.*, 
-                   inst.name as institution_name,
+                   COALESCE(inst.name, 'Singular') as institution_name,
                    sup.name as supervisor_name,
                    u.email as user_email,
                    u.username as user_username,
@@ -114,7 +118,7 @@ class Intern
                    (SELECT COUNT(*) FROM task_assignments ta WHERE ta.intern_id = i.id AND ta.status = 'approved') as tasks_completed,
                    (SELECT COUNT(*) FROM task_assignments ta WHERE ta.intern_id = i.id AND ta.status IN ('assigned', 'in_progress', 'reopened')) as tasks_pending
             FROM interns i
-            INNER JOIN institutions inst ON inst.id = i.institution_id
+            LEFT JOIN institutions inst ON inst.id = i.institution_id
             INNER JOIN users u ON u.id = i.user_id
             LEFT JOIN users sup ON sup.id = i.supervisor_id
             LEFT JOIN intern_schedules s ON s.intern_id = i.id
@@ -175,8 +179,8 @@ class Intern
         $pdo = Database::getConnection();
         $stmt = $pdo->prepare("
             SELECT i.*, 
-                   inst.name as institution_name,
-                   inst.nif as institution_nif,
+                   COALESCE(inst.name, 'Singular') as institution_name,
+                   COALESCE(inst.nif, 'SINGULAR') as institution_nif,
                    sup.name as supervisor_name,
                    u.email as user_email,
                    u.username as user_username,
@@ -187,7 +191,7 @@ class Intern
                    s.daily_hours,
                    s.total_required_hours
             FROM interns i
-            INNER JOIN institutions inst ON inst.id = i.institution_id
+            LEFT JOIN institutions inst ON inst.id = i.institution_id
             INNER JOIN users u ON u.id = i.user_id
             LEFT JOIN users sup ON sup.id = i.supervisor_id
             LEFT JOIN intern_schedules s ON s.intern_id = i.id
@@ -262,6 +266,10 @@ class Intern
         $studentNumber = !empty($data['student_number']) ? trim((string)$data['student_number']) : null;
         $academicAdvisor = !empty($data['academic_advisor']) ? trim((string)$data['academic_advisor']) : null;
 
+        $institutionId = (!empty($data['institution_id']) && $data['institution_id'] !== 'singular' && (int)$data['institution_id'] > 0)
+            ? (int)$data['institution_id']
+            : null;
+
         $stmt = $pdo->prepare("
             INSERT INTO interns (
                 user_id, institution_id, supervisor_id, internship_code, full_name, social_name,
@@ -278,7 +286,7 @@ class Intern
 
         $stmt->execute([
             $data['user_id'],
-            $data['institution_id'],
+            $institutionId,
             $supervisorId,
             $data['internship_code'],
             $data['full_name'],
@@ -384,6 +392,12 @@ class Intern
             $workMode = $data['work_mode'] ?? ($intern['work_mode'] ?? 'presential');
             $remoteUntil = !empty($data['remote_authorized_until']) ? $data['remote_authorized_until'] : null;
 
+            $institutionId = $intern['institution_id'];
+            if (array_key_exists('institution_id', $data)) {
+                $rawInst = $data['institution_id'];
+                $institutionId = (!empty($rawInst) && $rawInst !== 'singular' && (int)$rawInst > 0) ? (int)$rawInst : null;
+            }
+
             $stmtIntern = $pdo->prepare("
                 UPDATE interns SET
                     institution_id = ?,
@@ -408,7 +422,7 @@ class Intern
                 WHERE id = ?
             ");
             $stmtIntern->execute([
-                $data['institution_id'] ?? $intern['institution_id'],
+                $institutionId,
                 $supervisorId,
                 $data['full_name'],
                 !empty($data['social_name']) ? trim((string)$data['social_name']) : null,

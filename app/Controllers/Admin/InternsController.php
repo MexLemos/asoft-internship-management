@@ -87,11 +87,13 @@ class InternsController extends Controller
     {
         $data = $request->all();
 
+        $rawInst = $data['institution_id'] ?? null;
+        $data['institution_id'] = (!empty($rawInst) && $rawInst !== 'singular' && (int)$rawInst > 0) ? (int)$rawInst : null;
+
         $errors = $this->validate($data, [
             'full_name' => 'required|min:3',
             'email' => 'required|email',
             'bi_number' => 'required',
-            'institution_id' => 'required|numeric',
             'course' => 'required',
             'start_date' => 'required'
         ]);
@@ -255,11 +257,14 @@ class InternsController extends Controller
         }
 
         $data = $request->all();
+
+        $rawInst = $data['institution_id'] ?? null;
+        $data['institution_id'] = (!empty($rawInst) && $rawInst !== 'singular' && (int)$rawInst > 0) ? (int)$rawInst : null;
+
         $errors = $this->validate($data, [
             'full_name' => 'required|min:3',
             'email' => 'required|email',
             'bi_number' => 'required',
-            'institution_id' => 'required|numeric',
             'course' => 'required',
             'start_date' => 'required'
         ]);
