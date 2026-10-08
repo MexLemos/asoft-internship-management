@@ -118,6 +118,7 @@
             width: 100%;
             height: 420px;
             object-fit: cover;
+            object-position: center 30%;
             display: block;
             background-color: #f1f5f9;
         }

@@ -54,7 +54,7 @@
             <div class="col-lg-6 text-center">
                 <div class="hero-frame-wrapper">
                     <div class="hero-contour-mask">
-                        <img src="<?= \App\Helpers\asset('images/hero-interns.jpg') ?>" alt="Estagiários de Engenharia de Software na Asoftmedia em Luanda" loading="eager">
+                        <img src="<?= \App\Helpers\asset('images/hero-interns.png') ?>" alt="Estagiários no Laboratório de Tecnologia Asoftmedia" loading="eager">
                     </div>
 
                     <!-- Floating Badges inspired by Curso em Vídeo reference -->
