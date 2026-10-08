@@ -1,124 +1,130 @@
 <!-- HERO SECTION -->
 <section class="hero-section">
     <div class="container">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-7">
-                <div class="hero-badge">
-                    <span class="badge bg-primary px-2 py-1 rounded-pill">🇦🇴 Angola Tech</span>
-                    <span>Formação Prática de Quadros de Engenharia de Software</span>
+        <div class="row align-items-center g-5 mb-5">
+            <div class="col-lg-6">
+                <!-- Tag / Code Badge -->
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary-subtle text-primary border border-primary-subtle small fw-semibold mb-3">
+                    <i class="bi bi-code-slash"></i>
+                    <span>Programa Prático de Engenharia de Software</span>
                 </div>
                 
-                <h1 class="display-4 fw-extrabold text-white mb-3" style="letter-spacing: -0.03em; line-height: 1.15;">
-                    Onde o Talento Angolano Ganha <span style="background: linear-gradient(135deg, #60a5fa 0%, #06b6d4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Experiência Real</span> de Desenvolvimento.
+                <h1 class="hero-title mb-3">
+                    Conheça o Programa de Estágio da <span class="brand-accent">Asoftmedia</span>
                 </h1>
 
-                <p class="lead text-white-50 mb-4 pe-lg-4" style="font-size: 1.15rem;">
-                    Diga adeus aos estágios burocráticos de papel. Na Asoftmedia, cada estagiário atua em código real com Git/GitHub, participa em mentorias técnicas 1-on-1, valida presença via Terminal QR e constrói um histórico profissional auditável.
+                <p class="lead text-secondary mb-4 pe-lg-3" style="font-size: 1.15rem; line-height: 1.65;">
+                    Criado para preparar estudantes médios, universitários e candidatos singulares para os desafios reais da tecnologia em Angola, com código prático no GitHub, mentorias 1-on-1 e certificação digital com QR Code.
                 </p>
 
-                <div class="d-flex flex-wrap align-items-center gap-3 mb-5">
+                <!-- Action Buttons -->
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
                     <?php if ($isLoggedIn): ?>
-                        <a href="<?= $homeRoute ?>" class="btn btn-primary btn-lg px-4 py-3 rounded-pill fw-bold btn-glow">
+                        <a href="<?= $homeRoute ?>" class="btn btn-primary btn-lg px-4 py-3 rounded-pill fw-bold shadow-sm">
                             <i class="bi bi-speedometer2 me-2"></i> Continuar para o Meu Painel
                         </a>
                     <?php else: ?>
-                        <a href="/login" class="btn btn-primary btn-lg px-4 py-3 rounded-pill fw-bold btn-glow">
-                            <i class="bi bi-box-arrow-in-right me-2"></i> Aceder ao Portal do Estagiário
+                        <a href="/login" class="btn btn-primary btn-lg px-4 py-3 rounded-pill fw-bold shadow-sm" style="background-color: #2563eb; border-color: #2563eb;">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> Aceder ao Portal <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     <?php endif; ?>
 
-                    <a href="#tracks" class="btn btn-outline-light btn-lg px-4 py-3 rounded-pill fw-semibold">
-                        <i class="bi bi-compass me-2"></i> Ver Trilhas de Ingresso
+                    <a href="/validar" class="btn btn-outline-secondary btn-lg px-4 py-3 rounded-pill fw-semibold">
+                        <i class="bi bi-patch-check me-2 text-primary"></i> Validar Certificado
                     </a>
                 </div>
 
-                <!-- Proof Badges -->
-                <div class="d-flex flex-wrap align-items-center gap-4 text-white-50 small border-top border-secondary border-opacity-25 pt-4">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                        <span>Singulares & Escolas Parceiras</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-shield-check text-info fs-5"></i>
-                        <span>Conforme a Lei nº 22/11 de Angola</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-award-fill text-warning fs-5"></i>
-                        <span>Certificação com Hash SHA-256</span>
-                    </div>
+                <!-- Simple Badges -->
+                <div class="d-flex flex-wrap align-items-center gap-3 text-secondary small pt-2">
+                    <span class="d-flex align-items-center gap-1">
+                        <i class="bi bi-check-circle-fill text-primary"></i> Singulares & Escolas
+                    </span>
+                    <span class="text-muted">•</span>
+                    <span class="d-flex align-items-center gap-1">
+                        <i class="bi bi-check-circle-fill text-success"></i> Terminal de Ponto por QR
+                    </span>
+                    <span class="text-muted">•</span>
+                    <span class="d-flex align-items-center gap-1">
+                        <i class="bi bi-check-circle-fill text-info"></i> Mentorias 1-on-1
+                    </span>
                 </div>
             </div>
 
-            <!-- Terminal Hero Visual -->
-            <div class="col-lg-5">
-                <div class="p-4 rounded-4" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); backdrop-filter: blur(16px); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
-                    <div class="d-flex align-items-center justify-content-between pb-3 border-bottom border-white border-opacity-10 mb-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="rounded-circle bg-danger" style="width: 10px; height: 10px;"></div>
-                            <div class="rounded-circle bg-warning" style="width: 10px; height: 10px;"></div>
-                            <div class="rounded-circle bg-success" style="width: 10px; height: 10px;"></div>
-                            <span class="font-mono text-white-50 ms-2 small">asoft-terminal://ponto</span>
-                        </div>
-                        <span class="badge bg-success-subtle text-success small font-mono">AO VIVO</span>
+            <!-- Hero Image with Organic Contour & Floating Accent Badges -->
+            <div class="col-lg-6 text-center">
+                <div class="hero-frame-wrapper">
+                    <div class="hero-contour-mask">
+                        <img src="<?= \App\Helpers\asset('images/hero-interns.jpg') ?>" alt="Estagiários de Engenharia de Software na Asoftmedia em Luanda" loading="eager">
                     </div>
 
-                    <div class="text-center py-3">
-                        <div class="p-3 bg-white rounded-3 d-inline-block shadow mb-3">
-                            <img src="<?= \App\Helpers\asset('images/logo.png') ?>" alt="Terminal QR" style="width: 100px; height: 100px; object-fit: contain;">
-                        </div>
-                        <h6 class="text-white fw-bold mb-1">Terminal de Presença Inteligente</h6>
-                        <p class="text-white-50 small mb-3">Leitura instantânea por câmara mobile & rotação a cada 15s</p>
-
-                        <div class="p-2 bg-dark bg-opacity-50 rounded-3 border border-white border-opacity-10 text-start small font-mono text-white-50 mb-3">
-                            <div class="text-info">&gt; intern.verifyPhysicalPresence()</div>
-                            <div class="text-success">&gt; STATUS: 200 OK • Luanda HQ</div>
-                            <div class="text-white-50">&gt; Biometria QR + Geofence GPS ativado</div>
-                        </div>
-
-                        <a href="/attendance/scan" class="btn btn-outline-info btn-sm w-100 rounded-pill py-2 fw-semibold">
-                            <i class="bi bi-camera me-1"></i> Simular Leitura do Terminal
-                        </a>
+                    <!-- Floating Badges inspired by Curso em Vídeo reference -->
+                    <div class="floating-pill floating-pill-1">
+                        <span>🚀</span> Prática Real & Git
+                    </div>
+                    <div class="floating-pill floating-pill-2">
+                        <span>✨</span> Mentorias 1-on-1
+                    </div>
+                    <div class="floating-pill floating-pill-3">
+                        <span>🏆</span> +100 Estagiários
+                    </div>
+                    <div class="floating-pill floating-pill-4">
+                        <span>📍</span> Luanda Tech HQ
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Metric Counter Grid in Hero -->
-        <div class="row g-3 pt-5 mt-4 border-top border-white border-opacity-10">
+        <!-- Metric Counter Grid (Light Modern Cards) -->
+        <div id="metrics" class="row g-3 pt-3">
             <div class="col-6 col-lg-3">
-                <div class="metric-card">
-                    <span class="text-white-50 small d-block mb-1">Estagiários no Programa</span>
-                    <h2 class="display-6 fw-bold text-white mb-0 font-mono text-primary" style="color: #60a5fa !important;">
+                <div class="metric-card-light">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-people-fill text-primary fs-5"></i>
+                        <span class="text-secondary small fw-medium">Estagiários no Programa</span>
+                    </div>
+                    <h2 class="display-6 fw-bold mb-1 font-mono" style="color: #2563eb;">
                         +<?= number_format($stats['total_impacted']) ?>
                     </h2>
-                    <span class="text-white-50 small" style="font-size: 0.78rem;">Formados e em Formação</span>
+                    <span class="text-muted small" style="font-size: 0.8rem;">Formados & em Formação</span>
                 </div>
             </div>
+
             <div class="col-6 col-lg-3">
-                <div class="metric-card">
-                    <span class="text-white-50 small d-block mb-1">Horas Práticas Auditadas</span>
-                    <h2 class="display-6 fw-bold text-white mb-0 font-mono" style="color: #34d399 !important;">
+                <div class="metric-card-light">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-clock-history text-success fs-5"></i>
+                        <span class="text-secondary small fw-medium">Horas Práticas Auditadas</span>
+                    </div>
+                    <h2 class="display-6 fw-bold mb-1 font-mono" style="color: #059669;">
                         +<?= number_format($stats['hours_practice']) ?>h
                     </h2>
-                    <span class="text-white-50 small" style="font-size: 0.78rem;">Em projetos de produção</span>
+                    <span class="text-muted small" style="font-size: 0.8rem;">Em Projetos de Produção</span>
                 </div>
             </div>
+
             <div class="col-6 col-lg-3">
-                <div class="metric-card">
-                    <span class="text-white-50 small d-block mb-1">Instituições Conectadas</span>
-                    <h2 class="display-6 fw-bold text-white mb-0 font-mono" style="color: #38bdf8 !important;">
+                <div class="metric-card-light">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-buildings-fill text-info fs-5"></i>
+                        <span class="text-secondary small fw-medium">Instituições Conectadas</span>
+                    </div>
+                    <h2 class="display-6 fw-bold mb-1 font-mono" style="color: #0284c7;">
                         <?= number_format($stats['institutions']) ?>
                     </h2>
-                    <span class="text-white-50 small" style="font-size: 0.78rem;">Médios e Universidades</span>
+                    <span class="text-muted small" style="font-size: 0.8rem;">Médios & Universidades</span>
                 </div>
             </div>
+
             <div class="col-6 col-lg-3">
-                <div class="metric-card">
-                    <span class="text-white-50 small d-block mb-1">Taxa de Aproveitamento</span>
-                    <h2 class="display-6 fw-bold text-white mb-0 font-mono" style="color: #fbbf24 !important;">
+                <div class="metric-card-light">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-award-fill text-warning fs-5"></i>
+                        <span class="text-secondary small fw-medium">Taxa de Aproveitamento</span>
+                    </div>
+                    <h2 class="display-6 fw-bold mb-1 font-mono" style="color: #d97706;">
                         <?= $stats['retention_rate'] ?>%
                     </h2>
-                    <span class="text-white-50 small" style="font-size: 0.78rem;">Escala 0 a 20 valores</span>
+                    <span class="text-muted small" style="font-size: 0.8rem;">Escala Oficial Angolana (0-20)</span>
                 </div>
             </div>
         </div>

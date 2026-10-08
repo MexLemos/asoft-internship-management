@@ -44,53 +44,144 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
-        /* Navbar Blur */
+        /* Navbar Light */
         .landing-nav {
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            background-color: rgba(10, 17, 40, 0.92);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            background-color: rgba(255, 255, 255, 0.94);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 4px 20px -5px rgba(15, 23, 42, 0.05);
             transition: all 0.3s ease;
         }
-
-        /* Hero Dark Section */
-        .hero-section {
-            background: radial-gradient(circle at 80% 20%, rgba(37, 99, 235, 0.22) 0%, transparent 50%),
-                        radial-gradient(circle at 10% 70%, rgba(6, 182, 212, 0.15) 0%, transparent 40%),
-                        linear-gradient(180deg, var(--landing-darker) 0%, var(--landing-dark) 100%);
-            color: #ffffff;
-            position: relative;
-            padding-top: 130px;
-            padding-bottom: 80px;
+        .landing-nav .navbar-brand {
+            color: #0f172a !important;
+        }
+        .landing-nav .nav-link {
+            color: #475569 !important;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        .landing-nav .nav-link:hover {
+            color: var(--landing-accent) !important;
         }
 
-        .hero-badge {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            backdrop-filter: blur(8px);
-            color: #93c5fd;
-            font-size: 0.85rem;
-            padding: 0.4rem 1rem;
+        /* Hero Light Section (Clean & Friendly, inspired by Curso em Vídeo style) */
+        .hero-section {
+            background: radial-gradient(circle at 85% 18%, rgba(37, 99, 235, 0.08) 0%, transparent 45%),
+                        radial-gradient(circle at 10% 85%, rgba(6, 182, 212, 0.06) 0%, transparent 40%),
+                        linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+            color: #0f172a;
+            position: relative;
+            padding-top: 135px;
+            padding-bottom: 60px;
+            overflow: hidden;
+        }
+
+        .hero-title {
+            font-size: 3.25rem;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            color: #0f172a;
+        }
+
+        .hero-title .brand-accent {
+            color: #2563eb;
+            display: inline-block;
+        }
+
+        @media (max-width: 991px) {
+            .hero-title {
+                font-size: 2.35rem;
+            }
+        }
+
+        /* Hero Organic Framed Image */
+        .hero-frame-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            max-width: 530px;
+            margin: 0 auto;
+        }
+
+        .hero-contour-mask {
+            position: relative;
+            border-radius: 48px 48px 140px 48px;
+            padding: 8px;
+            background: linear-gradient(135deg, #60a5fa 0%, #2563eb 50%, #06b6d4 100%);
+            box-shadow: 0 25px 60px -15px rgba(37, 99, 235, 0.28);
+        }
+
+        .hero-contour-mask img {
+            border-radius: 42px 42px 134px 42px;
+            width: 100%;
+            height: 420px;
+            object-fit: cover;
+            display: block;
+            background-color: #f1f5f9;
+        }
+
+        /* Floating Accent Badges around Hero Photo */
+        .floating-pill {
+            position: absolute;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
             border-radius: 9999px;
+            padding: 0.5rem 1rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #0f172a;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12);
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
+            gap: 0.45rem;
+            z-index: 2;
+            animation: heroFloat 4s ease-in-out infinite alternate;
+        }
+        .floating-pill-1 {
+            top: -12px;
+            right: 18px;
+            border-color: #bfdbfe;
+        }
+        .floating-pill-2 {
+            bottom: 25px;
+            left: -18px;
+            border-color: #bbf7d0;
+            animation-delay: 1.5s;
+        }
+        .floating-pill-3 {
+            top: 42%;
+            left: -24px;
+            border-color: #fef08a;
+            animation-delay: 0.8s;
+        }
+        .floating-pill-4 {
+            bottom: -14px;
+            right: 32px;
+            border-color: #fed7aa;
+            animation-delay: 2.2s;
         }
 
-        /* Metric Counter Cards */
-        .metric-card {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
-            border-radius: 16px;
-            padding: 1.75rem 1.5rem;
-            transition: transform 0.25s ease, border-color 0.25s ease;
+        @keyframes heroFloat {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-8px); }
         }
-        .metric-card:hover {
+
+        /* Light Metric Cards */
+        .metric-card-light {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 1.5rem 1.25rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+            height: 100%;
+        }
+        .metric-card-light:hover {
             transform: translateY(-4px);
-            border-color: rgba(96, 165, 250, 0.4);
-            background: rgba(255, 255, 255, 0.07);
+            box-shadow: 0 14px 28px -6px rgba(37, 99, 235, 0.12);
+            border-color: #bfdbfe;
         }
 
         /* Track Cards (Singular vs Public vs Private) */
@@ -206,42 +297,45 @@
     <!-- Header Navigation -->
     <nav class="navbar navbar-expand-lg landing-nav fixed-top py-3">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2 text-white fw-bold fs-4" href="/">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold fs-4 text-dark" href="/">
                 <img src="<?= \App\Helpers\asset('images/logo.png') ?>" alt="Asoftmedia" style="width: 34px; height: 34px; object-fit: contain;">
                 <span>ASOFTMEDIA</span>
             </a>
             
-            <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-                <i class="bi bi-list fs-2 text-white"></i>
+            <button class="navbar-toggler border-0 text-dark shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+                <i class="bi bi-list fs-2 text-dark"></i>
             </button>
             
             <div class="collapse navbar-collapse" id="navMenu">
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-3 text-center">
                     <li class="nav-item">
-                        <a class="nav-link text-white-50 px-2 fw-medium hover-text-white" href="#tracks">Trilhas de Ingresso</a>
+                        <a class="nav-link px-2 fw-medium" href="#tracks">Trilhas de Ingresso</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white-50 px-2 fw-medium hover-text-white" href="#pillars">Pilares do Programa</a>
+                        <a class="nav-link px-2 fw-medium" href="#pillars">Pilares do Programa</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white-50 px-2 fw-medium hover-text-white" href="#metrics">Métricas</a>
+                        <a class="nav-link px-2 fw-medium" href="#metrics">Métricas</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white-50 px-2 fw-medium hover-text-white" href="#faq">Perguntas Frequentes</a>
+                        <a class="nav-link px-2 fw-medium" href="/validar">Validação de Certificado</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-2 fw-medium" href="#faq">Perguntas Frequentes</a>
                     </li>
                 </ul>
                 
                 <div class="d-flex flex-column flex-lg-row align-items-center gap-2 pt-2 pt-lg-0">
-                    <a href="/attendance/scan" class="btn btn-outline-light btn-sm px-3 rounded-pill" title="Ler código QR do terminal da sede">
-                        <i class="bi bi-qr-code me-1"></i> Bater Ponto
+                    <a href="/attendance/scan" class="btn btn-outline-secondary btn-sm px-3 rounded-pill fw-medium" title="Ler código QR do terminal da sede">
+                        <i class="bi bi-qr-code me-1 text-primary"></i> Bater Ponto (QR)
                     </a>
 
                     <?php if ($isLoggedIn): ?>
-                        <a href="<?= $homeRoute ?>" class="btn btn-primary btn-sm px-4 rounded-pill fw-bold">
+                        <a href="<?= $homeRoute ?>" class="btn btn-primary btn-sm px-4 rounded-pill fw-bold shadow-sm">
                             <i class="bi bi-speedometer2 me-1"></i> Aceder ao Painel
                         </a>
                     <?php else: ?>
-                        <a href="/login" class="btn btn-primary btn-sm px-4 rounded-pill fw-bold btn-glow">
+                        <a href="/login" class="btn btn-primary btn-sm px-4 rounded-pill fw-bold shadow-sm" style="background-color: #2563eb; border-color: #2563eb;">
                             <i class="bi bi-box-arrow-in-right me-1"></i> Entrar no Portal
                         </a>
                     <?php endif; ?>
