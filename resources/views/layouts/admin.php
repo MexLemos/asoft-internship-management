@@ -6,6 +6,14 @@
     <meta name="csrf-token" content="<?= \App\Helpers\csrf_token() ?>">
     <title><?= \App\Helpers\e($title ?? 'Asoftmedia Internship System') ?></title>
     
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Asoft Estágio">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/assets/images/icon-192.png">
+    
     <link rel="icon" type="image/png" href="<?= \App\Helpers\asset('images/logo.png') ?>">
     <!-- Bootstrap 5 CSS & Icons CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -96,7 +104,10 @@
         <div class="main-content">
             <!-- Top Navbar -->
             <header class="top-navbar d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-secondary btn-sm d-lg-none" id="btnToggleSidebar" type="button" aria-label="Abrir Menu">
+                        <i class="bi bi-list fs-5"></i>
+                    </button>
                     <?php if (($_SERVER['REQUEST_URI'] ?? '') !== '/admin/dashboard'): ?>
                         <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm btn-back">
                             <i class="bi bi-arrow-left"></i> Voltar

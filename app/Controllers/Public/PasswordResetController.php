@@ -120,4 +120,63 @@ class PasswordResetController extends Controller
         Session::flash('success', 'A sua palavra-passe foi redefinida com sucesso! Pode agora entrar no sistema.');
         return $this->redirect('/login');
     }
+
+    public function showForceChangeForm(Request $request): Response
+    {
+        $user = Session::get('user');
+        if (!$user) {
+            return $this->redirect('/login');
+        }
+
+        return $this->render('auth.force_password_change', [
+            'title' => 'Primeiro Acesso: Alteração Obrigatória de Palavra-passe - Asoftmedia',
+            'user' => $user
+        ], 'auth');
+    }
+
+    public function handleForceChange(Request $request): Response
+    {
+        $user = Session::get('user');
+        if (!$user) {
+            return $this->redirect('/login');
+        }
+
+        $userId = (int)$user['id'];
+        $newPassword = (string)$request->input('new_password', '');
+        $confirmPassword = (string)$request->input('confirm_password', '');
+
+        if (strlen($newPassword) < 8) {
+            Session::flash('error', 'A nova palavra-passe deve conter pelo menos 8 caracteres.');
+            return $this->redirect('/force-password-change');
+        }
+
+        // Não permitir senhas fracas comuns ou iguais ao username
+        $weakPasswords = ['12345678', 'password', 'asoftmedia', 'estagio123', 'mudar123', strtolower($user['username'] ?? '')];
+        if (in_array(strtolower($newPassword), $weakPasswords, true)) {
+            Session::flash('error', 'Por motivos de segurança, não pode utilizar uma palavra-passe óbvia ou genérica.');
+            return $this->redirect('/force-password-change');
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            Session::flash('error', 'A confirmação da nova palavra-passe não coincide.');
+            return $this->redirect('/force-password-change');
+        }
+
+        $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT);
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, must_change_password = 0, updated_at = NOW() WHERE id = ?");
+        $stmt->execute([$passwordHash, $userId]);
+
+        // Atualizar estado na sessão
+        $user['must_change_password'] = 0;
+        Session::set('user', $user);
+
+        AuditLog::log('first_login_password_changed', 'auth', $userId, null, null, 'success');
+
+        Session::flash('success', 'A sua palavra-passe pessoal foi definida com sucesso! Bem-vindo à Asoftmedia.');
+        
+        $authService = new \App\Services\AuthService();
+        $route = $authService->determineHomeRoute($user['roles'] ?? []);
+        return $this->redirect($route);
+    }
 }

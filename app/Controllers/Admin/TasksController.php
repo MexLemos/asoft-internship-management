@@ -19,14 +19,24 @@ class TasksController extends Controller
 {
     public function index(Request $request): Response
     {
-        $tasks = Task::all();
+        $page = max(1, (int)$request->input('page', 1));
+        $filters = [
+            'search' => trim((string)$request->input('search', '')),
+            'category_id' => $request->input('category_id'),
+            'priority' => $request->input('priority'),
+            'sort' => $request->input('sort', 'id'),
+            'direction' => $request->input('direction', 'desc'),
+        ];
+
+        $paginated = Task::paginate($page, 10, $filters);
         $categories = TaskCategory::all();
-        // Administrators manage and can assign tasks to all active interns
         $interns = Intern::all();
 
         return $this->render('supervisor.tasks.index', [
             'title' => 'Gestão e Atribuição de Tarefas - Asoftmedia',
-            'tasks' => $tasks,
+            'tasks' => $paginated['data'],
+            'pagination' => $paginated,
+            'filters' => $filters,
             'categories' => $categories,
             'interns' => $interns,
             'adminContext' => true
@@ -48,6 +58,7 @@ class TasksController extends Controller
         $data = $request->all();
         $user = Session::get('user');
         $data['created_by'] = $user['id'];
+        $data['due_date'] = !empty($data['due_date']) ? $data['due_date'] : null;
 
         $errors = $this->validate($data, [
             'title' => 'required|min:5',
@@ -108,6 +119,7 @@ class TasksController extends Controller
             return $this->redirect("/admin/tasks/{$taskId}/edit");
         }
 
+        $data['due_date'] = !empty($data['due_date']) ? $data['due_date'] : null;
         Task::update($taskId, $data);
         AuditLog::log('task_update', 'tasks', $taskId, null, ['title' => $data['title']], 'success');
 

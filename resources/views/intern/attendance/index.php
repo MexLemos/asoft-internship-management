@@ -52,6 +52,28 @@
                     <?php endif; ?>
                 </div>
 
+                <!-- Validação Rápida no Computador (PC) via PIN do Terminal -->
+                <?php if (empty($todayRecord['check_in_time']) || empty($todayRecord['check_out_time'])): ?>
+                    <div class="p-3 bg-light rounded-3 border mb-4 text-start">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <strong class="text-dark small">
+                                <i class="bi bi-laptop text-primary me-1"></i> Está no Computador (PC / Desktop)?
+                            </strong>
+                            <span class="badge bg-primary-subtle text-primary border">Sem GPS</span>
+                        </div>
+                        <p class="small text-muted mb-2">
+                            Para evitar falhas de sinal GPS no computador, insira o <strong>código PIN de 6 dígitos</strong> exibido no monitor do terminal da recepção:
+                        </p>
+                        <div class="input-group">
+                            <input type="text" id="terminal-pin-quick" class="form-control font-monospace text-uppercase fw-bold text-center fs-5" placeholder="ex: PIN" maxlength="8" autocomplete="off">
+                            <button type="button" id="btn-submit-pin-quick" class="btn btn-primary fw-bold px-3" data-action="<?= empty($todayRecord['check_in_time']) ? 'check-in' : 'check-out' ?>">
+                                <i class="bi bi-check-circle-fill me-1"></i> Bater <?= empty($todayRecord['check_in_time']) ? 'Entrada' : 'Saída' ?>
+                            </button>
+                        </div>
+                        <div id="pin-quick-feedback" class="small mt-2" style="display: none;"></div>
+                    </div>
+                <?php endif; ?>
+
                 <div class="p-2 bg-light rounded-3 text-start small border">
                     <div class="d-flex justify-content-between text-muted mb-1">
                         <span><i class="bi bi-shield-check text-success me-1"></i> Raio máximo permitido:</span>
@@ -195,11 +217,11 @@
                 <!-- Manual Token Input -->
                 <form id="form-manual-qr">
                     <div class="mb-3 text-start">
-                        <label for="input-qr-token" class="form-label small fw-bold text-dark">Código / Hash do QR Code:</label>
-                        <input type="text" class="form-control font-monospace" id="input-qr-token" placeholder="Cole o token do terminal..." required autocomplete="off">
+                        <label for="input-qr-token" class="form-label small fw-bold text-dark">Código PIN (6 dígitos) ou Hash do Terminal:</label>
+                        <input type="text" class="form-control font-monospace text-uppercase" id="input-qr-token" placeholder="Insira o PIN (ex: 7A8B9C) ou cole o token..." required autocomplete="off">
                     </div>
                     <button type="submit" id="btn-submit-qr-token" class="btn btn-success w-100 py-2">
-                        <i class="bi bi-check-circle-fill me-1"></i> Validar Presença com Token
+                        <i class="bi bi-check-circle-fill me-1"></i> Validar Presença com PIN / Token
                     </button>
                 </form>
             </div>

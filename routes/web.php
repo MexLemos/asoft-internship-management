@@ -51,6 +51,10 @@ $router->post('/forgot-password', [PasswordResetController::class, 'sendResetLin
 $router->get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm']);
 $router->post('/reset-password/{token}', [PasswordResetController::class, 'resetPassword'], [CsrfMiddleware::class]);
 
+// Mandatory First Login Password Change (Item 3)
+$router->get('/force-password-change', [PasswordResetController::class, 'showForceChangeForm'], [AuthMiddleware::class]);
+$router->post('/force-password-change', [PasswordResetController::class, 'handleForceChange'], [AuthMiddleware::class, CsrfMiddleware::class]);
+
 // Privacy Policy (Lei 22/11 Angola)
 $router->get('/politica-privacidade', [PrivacyController::class, 'showPolicy']);
 
@@ -139,7 +143,9 @@ $router->group([
     $r->post('/courses/{id}/modules/add', [AdminCourses::class, 'addModule']);
     $r->post('/courses/modules/{id}/update', [AdminCourses::class, 'updateModule']);
     $r->post('/courses/modules/{id}/delete', [AdminCourses::class, 'deleteModule']);
+    $r->get('/courses/{id}/preview', [AdminCourses::class, 'preview']);
     $r->post('/courses/modules/{id}/lessons/add', [AdminCourses::class, 'addLesson']);
+    $r->post('/courses/modules/{id}/playlist/import', [AdminCourses::class, 'importPlaylist']);
     $r->post('/courses/lessons/{id}/update', [AdminCourses::class, 'updateLesson']);
     $r->post('/courses/lessons/{id}/delete', [AdminCourses::class, 'deleteLesson']);
     $r->post('/courses/lessons/{id}/contents/add', [AdminCourses::class, 'addContent']);
@@ -211,7 +217,9 @@ $router->group([
     $r->post('/courses/{id}/modules/add', [\App\Controllers\Supervisor\CoursesController::class, 'addModule']);
     $r->post('/courses/modules/{id}/update', [\App\Controllers\Supervisor\CoursesController::class, 'updateModule']);
     $r->post('/courses/modules/{id}/delete', [\App\Controllers\Supervisor\CoursesController::class, 'deleteModule']);
+    $r->get('/courses/{id}/preview', [\App\Controllers\Supervisor\CoursesController::class, 'preview']);
     $r->post('/courses/modules/{id}/lessons/add', [\App\Controllers\Supervisor\CoursesController::class, 'addLesson']);
+    $r->post('/courses/modules/{id}/playlist/import', [\App\Controllers\Supervisor\CoursesController::class, 'importPlaylist']);
     $r->post('/courses/lessons/{id}/update', [\App\Controllers\Supervisor\CoursesController::class, 'updateLesson']);
     $r->post('/courses/lessons/{id}/delete', [\App\Controllers\Supervisor\CoursesController::class, 'deleteLesson']);
     $r->post('/courses/lessons/{id}/contents/add', [\App\Controllers\Supervisor\CoursesController::class, 'addContent']);

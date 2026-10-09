@@ -9,15 +9,23 @@ use Throwable;
 
 class DatabaseAutoMigrator
 {
+    public const SCHEMA_VERSION = 'v20';
     private static bool $checked = false;
 
     /**
      * Garante que todas as tabelas e colunas necessárias para as fases mais recentes
      * do sistema estejam devidamente criadas no MySQL (Self-healing idempotente).
+     * Utiliza trava em ficheiro local para evitar sobrecarga no MySQL em produção.
      */
-    public static function ensureSchemaUpToDate(PDO $pdo): array
+    public static function ensureSchemaUpToDate(PDO $pdo, bool $force = false): array
     {
-        if (self::$checked) {
+        if (self::$checked && !$force) {
+            return ['status' => 'already_checked', 'applied' => []];
+        }
+
+        $lockFile = dirname(__DIR__, 2) . '/storage/cache/schema_' . self::SCHEMA_VERSION . '.lock';
+        if (!$force && file_exists($lockFile)) {
+            self::$checked = true;
             return ['status' => 'already_checked', 'applied' => []];
         }
 
@@ -228,7 +236,58 @@ class DatabaseAutoMigrator
                 error_log("AutoMigrator: Falha ao criar instituição Singular: " . $e->getMessage());
             }
 
+            // 6. Atualizações da Fase de Performance, Prazos de Tarefas e Alteração Obrigatória de Senha (Migration 020)
+            try {
+                if (!self::columnExists($pdo, 'users', 'must_change_password')) {
+                    $pdo->exec("ALTER TABLE users ADD COLUMN must_change_password TINYINT(1) UNSIGNED NOT NULL DEFAULT 0 AFTER password_hash");
+                    $applied[] = 'users_must_change_password_column_added';
+                }
+
+                if (!self::columnExists($pdo, 'tasks', 'due_date')) {
+                    $pdo->exec("ALTER TABLE tasks ADD COLUMN due_date DATE NULL AFTER estimated_hours");
+                    $applied[] = 'tasks_due_date_column_added';
+                }
+
+                // Índices de alta performance
+                if (!self::indexExists($pdo, 'users', 'idx_users_status_email')) {
+                    $pdo->exec("CREATE INDEX idx_users_status_email ON users (status, email)");
+                    $applied[] = 'idx_users_status_email_created';
+                }
+
+                if (!self::indexExists($pdo, 'attendance', 'idx_attendance_intern_date')) {
+                    $pdo->exec("CREATE INDEX idx_attendance_intern_date ON attendance (intern_id, date)");
+                    $applied[] = 'idx_attendance_intern_date_created';
+                }
+
+                if (!self::indexExists($pdo, 'task_assignments', 'idx_task_assign_intern_status')) {
+                    $pdo->exec("CREATE INDEX idx_task_assign_intern_status ON task_assignments (intern_id, status)");
+                    $applied[] = 'idx_task_assign_intern_status_created';
+                }
+
+                if (!self::indexExists($pdo, 'task_assignments', 'idx_task_assign_due_date')) {
+                    $pdo->exec("CREATE INDEX idx_task_assign_due_date ON task_assignments (due_date)");
+                    $applied[] = 'idx_task_assign_due_date_created';
+                }
+
+                if (!self::indexExists($pdo, 'dynamic_attendance_tokens', 'idx_dynamic_tokens_expires')) {
+                    $pdo->exec("CREATE INDEX idx_dynamic_tokens_expires ON dynamic_attendance_tokens (expires_at)");
+                    $applied[] = 'idx_dynamic_tokens_expires_created';
+                }
+
+                self::recordMigration($pdo, '020_performance_indexes_task_due_date_must_change_password.sql');
+            } catch (Throwable $e) {
+                error_log("AutoMigrator: Falha ao aplicar migration 020: " . $e->getMessage());
+            }
+
             self::$checked = true;
+
+            // Gravar ficheiro de trava para evitar reexecução no MySQL em requisições subsequentes
+            try {
+                @mkdir(dirname($lockFile), 0755, true);
+                @file_put_contents($lockFile, date('c'));
+            } catch (Throwable $e) {
+                error_log("AutoMigrator: Não foi possível gravar ficheiro de trava: " . $e->getMessage());
+            }
 
             return [
                 'status' => 'success',
@@ -300,6 +359,21 @@ class DatabaseAutoMigrator
                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?
             ");
             $stmt->execute([$tableName, $columnName]);
+            return ((int)$stmt->fetchColumn()) > 0;
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
+    public static function indexExists(PDO $pdo, string $tableName, string $indexName): bool
+    {
+        try {
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) 
+                FROM information_schema.STATISTICS 
+                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?
+            ");
+            $stmt->execute([$tableName, $indexName]);
             return ((int)$stmt->fetchColumn()) > 0;
         } catch (Throwable $e) {
             return false;

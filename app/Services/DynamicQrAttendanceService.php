@@ -95,25 +95,35 @@ class DynamicQrAttendanceService
         $pdo = Database::getConnection();
         $now = date('Y-m-d H:i:s');
 
-        $stmt = $pdo->prepare("
-            SELECT * FROM dynamic_attendance_tokens 
-            WHERE token_hash = ? AND expires_at >= ?
-            LIMIT 1
-        ");
-        $stmt->execute([$tokenHash, $now]);
+        $len = strlen($tokenHash);
+        if ($len <= 8) {
+            $stmt = $pdo->prepare("
+                SELECT * FROM dynamic_attendance_tokens 
+                WHERE UPPER(LEFT(token_hash, ?)) = UPPER(?) AND expires_at >= DATE_SUB(?, INTERVAL 20 SECOND)
+                ORDER BY id DESC LIMIT 1
+            ");
+            $stmt->execute([$len, $tokenHash, $now]);
+        } else {
+            $stmt = $pdo->prepare("
+                SELECT * FROM dynamic_attendance_tokens 
+                WHERE token_hash = ? AND expires_at >= ?
+                LIMIT 1
+            ");
+            $stmt->execute([$tokenHash, $now]);
+        }
         $token = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$token) {
             return [
                 'valid' => false,
-                'message' => 'O código QR expirou ou é inválido. Aponte a câmara novamente para o monitor da sede.'
+                'message' => 'O código PIN/QR expirou ou é inválido. Aponte a câmara novamente ou verifique o PIN no monitor da sede.'
             ];
         }
 
         return [
             'valid' => true,
             'token' => $token,
-            'message' => 'Código QR ativo e válido no terminal da sede.'
+            'message' => 'Código PIN/QR ativo e válido no terminal da sede.'
         ];
     }
 
@@ -144,26 +154,36 @@ class DynamicQrAttendanceService
         if (empty($tokenHash)) {
             return [
                 'valid' => false,
-                'message' => 'Código QR dinâmico não fornecido.'
+                'message' => 'Código PIN/QR dinâmico não fornecido.'
             ];
         }
 
         $pdo = Database::getConnection();
         $now = date('Y-m-d H:i:s');
 
-        // 1. Procurar token válido e não expirado
-        $stmt = $pdo->prepare("
-            SELECT * FROM dynamic_attendance_tokens 
-            WHERE token_hash = ? AND expires_at >= ?
-            LIMIT 1
-        ");
-        $stmt->execute([$tokenHash, $now]);
+        // 1. Procurar token válido (suporta hash completo ou PIN de 6 caracteres)
+        $len = strlen($tokenHash);
+        if ($len <= 8) {
+            $stmt = $pdo->prepare("
+                SELECT * FROM dynamic_attendance_tokens 
+                WHERE UPPER(LEFT(token_hash, ?)) = UPPER(?) AND expires_at >= DATE_SUB(?, INTERVAL 20 SECOND)
+                ORDER BY id DESC LIMIT 1
+            ");
+            $stmt->execute([$len, $tokenHash, $now]);
+        } else {
+            $stmt = $pdo->prepare("
+                SELECT * FROM dynamic_attendance_tokens 
+                WHERE token_hash = ? AND expires_at >= ?
+                LIMIT 1
+            ");
+            $stmt->execute([$tokenHash, $now]);
+        }
         $token = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$token) {
             return [
                 'valid' => false,
-                'message' => 'O Código QR lido expirou ou é inválido. Aponte a câmara para o monitor do terminal na sede para ler o código atual.'
+                'message' => 'O Código PIN/QR expirou ou é inválido. Consulte o monitor do terminal na sede para obter o código atual.'
             ];
         }
 

@@ -138,6 +138,20 @@ class TaskAssignment
         $finalStatus = 'approved';
         $finalScore = $score;
 
+        // Regra de Penalização de 30% por Atraso (Item 5)
+        if ($finalScore !== null && $finalScore > 0 && !empty($assignment['due_date'])) {
+            $dueDateTimestamp = strtotime($assignment['due_date'] . ' 23:59:59');
+            $completionTimestamp = !empty($assignment['completed_at']) 
+                ? strtotime($assignment['completed_at']) 
+                : time();
+
+            if ($completionTimestamp > $dueDateTimestamp) {
+                $originalScore = $finalScore;
+                $finalScore = round($finalScore * 0.70, 2); // Redução de 30%
+                $feedback = "⚠️ [Penalização de atraso: Entrega após o prazo (" . date('d/m/Y', $dueDateTimestamp) . "). Pontuação ajustada de " . number_format($originalScore, 1) . " para " . number_format($finalScore, 1) . " (-30%)]. " . ($feedback ?? '');
+            }
+        }
+
         if ($decision === 'rejected') {
             $finalStatus = 'rejected';
             $finalScore = null; // No passing grade

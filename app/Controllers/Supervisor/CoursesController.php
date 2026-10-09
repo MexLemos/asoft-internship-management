@@ -162,9 +162,98 @@ class CoursesController extends Controller
             return $this->redirect("/supervisor/courses/{$courseId}/edit");
         }
 
-        Course::addLesson($mId, $title, $order);
+        $lessonId = Course::addLesson($mId, $title, $order);
+
+        // Unified Lesson + Content
+        $contentType = (string)$request->input('content_type', 'none');
+        if ($contentType !== 'none' && !empty($contentType)) {
+            $contentTitle = trim((string)$request->input('content_title', ''));
+            if (empty($contentTitle)) {
+                $contentTitle = $title;
+            }
+            $duration = max(1, (int)$request->input('duration_minutes', 15));
+            $articleBody = trim((string)$request->input('article_body', ''));
+            $urlOrPath = trim((string)$request->input('content_url_or_path', ''));
+
+            if ($contentType === 'pdf_document' && !empty($_FILES['pdf_file']['name']) && $_FILES['pdf_file']['error'] === UPLOAD_ERR_OK) {
+                $ext = strtolower(pathinfo($_FILES['pdf_file']['name'], PATHINFO_EXTENSION));
+                if ($ext === 'pdf') {
+                    $targetDir = dirname(__DIR__, 3) . '/public/uploads/materials/';
+                    if (!is_dir($targetDir)) {
+                        mkdir($targetDir, 0755, true);
+                    }
+                    $fileName = 'material_' . bin2hex(random_bytes(6)) . '.pdf';
+                    move_uploaded_file($_FILES['pdf_file']['tmp_name'], $targetDir . $fileName);
+                    $urlOrPath = '/uploads/materials/' . $fileName;
+                }
+            }
+
+            if (!empty($urlOrPath) || !empty($articleBody) || $contentType === 'text_document') {
+                Course::addContent($lessonId, $contentTitle, $contentType, $urlOrPath, $articleBody, $duration, 1);
+                Session::flash('success', "Aula '{$title}' e conteúdo pedagógico criados com sucesso!");
+                return $this->redirect("/supervisor/courses/{$courseId}/edit");
+            }
+        }
+
         Session::flash('success', 'Aula criada com sucesso!');
         return $this->redirect("/supervisor/courses/{$courseId}/edit");
+    }
+
+    public function importPlaylist(Request $request, string $moduleId): Response
+    {
+        $mId = (int)$moduleId;
+        $courseId = (int)$request->input('course_id', 1);
+        $input = trim((string)$request->input('playlist_input', ''));
+        $duration = max(1, (int)$request->input('default_duration', 15));
+
+        $result = \App\Services\YouTubePlaylistImporter::import($mId, $input, $duration);
+
+        if ($result['success']) {
+            Session::flash('success', $result['message']);
+        } else {
+            Session::flash('error', $result['message']);
+        }
+
+        return $this->redirect("/supervisor/courses/{$courseId}/edit");
+    }
+
+    public function preview(Request $request, string $id): Response
+    {
+        $courseId = (int)$id;
+        $course = Course::findWithModules($courseId, 0);
+
+        if (!$course) {
+            Session::flash('error', 'Curso não encontrado.');
+            return $this->redirect('/supervisor/courses');
+        }
+
+        $course['progress_percentage'] = 0.0;
+
+        $contentId = $request->input('content') ? (int)$request->input('content') : null;
+        $activeContent = null;
+
+        foreach ($course['modules'] as $mod) {
+            foreach ($mod['lessons'] as $les) {
+                foreach ($les['contents'] as $cnt) {
+                    if ($contentId !== null && (int)$cnt['id'] === $contentId) {
+                        $activeContent = $cnt;
+                        break 3;
+                    }
+                    if ($activeContent === null) {
+                        $activeContent = $cnt;
+                    }
+                }
+            }
+        }
+
+        return $this->render('intern.academy.study_zone', [
+            'title' => 'Visualização como Aluno: ' . $course['title'],
+            'course' => $course,
+            'activeContent' => $activeContent,
+            'doubts' => [],
+            'isPreview' => true,
+            'supervisorContext' => true
+        ], 'supervisor');
     }
 
     public function deleteLesson(Request $request, string $lessonId): Response

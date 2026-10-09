@@ -10,6 +10,7 @@
     
     <link rel="icon" type="image/png" href="<?= \App\Helpers\asset('images/favicon.png') ?>">
     <link rel="apple-touch-icon" href="<?= \App\Helpers\asset('images/logo.png') ?>">
+    <link rel="manifest" href="/manifest.json">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

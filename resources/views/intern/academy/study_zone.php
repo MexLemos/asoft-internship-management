@@ -1,8 +1,29 @@
+<?php 
+$isCoursePreview = !empty($isPreview);
+$backUrl = $isCoursePreview 
+    ? (!empty($supervisorContext) ? "/supervisor/courses/{$course['id']}/edit" : "/admin/courses/{$course['id']}/edit")
+    : "/intern/academy";
+$studyUrlPrefix = $isCoursePreview 
+    ? (!empty($supervisorContext) ? "/supervisor/courses/{$course['id']}/preview" : "/admin/courses/{$course['id']}/preview")
+    : "/intern/academy/course/{$course['id']}";
+?>
+<?php if ($isCoursePreview): ?>
+    <div class="alert alert-primary border-0 shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3 py-2 px-3">
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary text-uppercase px-2 py-1"><i class="bi bi-eye-fill me-1"></i> Visualização de Aluno</span>
+            <span class="small fw-semibold text-primary-emphasis">Modo de Teste: você está navegando no curso exatamente como um estagiário na Zona de Estudo.</span>
+        </div>
+        <a href="<?= $backUrl ?>" class="btn btn-dark btn-sm py-1 px-3 fw-semibold">
+            <i class="bi bi-pencil-square me-1"></i> Voltar à Edição
+        </a>
+    </div>
+<?php endif; ?>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-1 small">
-                <li class="breadcrumb-item"><a href="/intern/academy">Academia</a></li>
+                <li class="breadcrumb-item"><a href="<?= $backUrl ?>"><?= $isCoursePreview ? 'Edição do Curso' : 'Academia' ?></a></li>
                 <li class="breadcrumb-item active"><?= \App\Helpers\e($course['title']) ?></li>
             </ol>
         </nav>
@@ -11,8 +32,8 @@
             <span class="badge bg-primary"><?= $course['progress_percentage'] ?>% Concluído</span>
         </div>
     </div>
-    <a href="/intern/academy" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left me-1"></i> Voltar aos Cursos
+    <a href="<?= $backUrl ?>" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> <?= $isCoursePreview ? 'Voltar à Edição' : 'Voltar aos Cursos' ?>
     </a>
 </div>
 
@@ -69,9 +90,15 @@
                             <button type="button" class="btn btn-outline-warning text-dark btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#modalDoubt">
                                 <i class="bi bi-question-circle-fill text-warning me-1"></i> Tenho uma dúvida
                             </button>
-                            <button class="btn btn-success btn-sm fw-bold" onclick="markCompleted(<?= $activeContent['id'] ?>)">
-                                <i class="bi bi-check-lg me-1"></i> Concluir Aula
-                            </button>
+                            <?php if (empty($isCoursePreview)): ?>
+                                <button class="btn btn-success btn-sm fw-bold" onclick="markCompleted(<?= $activeContent['id'] ?>)">
+                                    <i class="bi bi-check-lg me-1"></i> Concluir Aula
+                                </button>
+                            <?php else: ?>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 small">
+                                    <i class="bi bi-check2-circle me-1"></i> Prévia Ativa
+                                </span>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <p class="text-muted small mb-0"><?= \App\Helpers\e($activeContent['article_body'] ?? 'Material de estudo oficial fornecido pela Asoftmedia.') ?></p>
@@ -148,7 +175,7 @@
                                                 <?= \App\Helpers\e($les['title']) ?>
                                             </div>
                                             <?php foreach ($les['contents'] as $cnt): ?>
-                                                <a href="/intern/academy/course/<?= $course['id'] ?>?content=<?= $cnt['id'] ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 <?= ($activeContent && (int)$activeContent['id'] === (int)$cnt['id']) ? 'active' : '' ?>">
+                                                <a href="<?= $studyUrlPrefix ?>?content=<?= $cnt['id'] ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 <?= ($activeContent && (int)$activeContent['id'] === (int)$cnt['id']) ? 'active' : '' ?>">
                                                     <div>
                                                         <?php if ($cnt['content_type'] === 'youtube_video'): ?>
                                                             <i class="bi bi-play-circle me-1"></i>

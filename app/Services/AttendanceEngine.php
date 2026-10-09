@@ -143,7 +143,9 @@ class AttendanceEngine
                 ];
             }
 
-            $verificationMethod = is_valid_coordinate($lat, $lng) ? 'hybrid_gps_qr' : 'dynamic_qr';
+            $verificationMethod = (strlen($qrToken) <= 8) 
+                ? 'terminal_pin' 
+                : (is_valid_coordinate($lat, $lng) ? 'hybrid_gps_qr' : 'dynamic_qr');
         } else {
             // Validação padrão por coordenadas GPS
             if (!is_valid_coordinate($lat, $lng)) {
@@ -318,7 +320,9 @@ class AttendanceEngine
             if (!$qrRes['valid']) {
                 return ['success' => false, 'message' => $qrRes['message']];
             }
-            $verificationMethod = is_valid_coordinate($lat, $lng) ? 'hybrid_gps_qr' : 'dynamic_qr';
+            $verificationMethod = (strlen($qrToken) <= 8) 
+                ? 'terminal_pin' 
+                : (is_valid_coordinate($lat, $lng) ? 'hybrid_gps_qr' : 'dynamic_qr');
         } else {
             // Filtro de Precisão GPS
             $maxAccuracy = (float)SystemSetting::get('max_gps_accuracy_meters', 80.0);

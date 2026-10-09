@@ -82,6 +82,46 @@ class GeolocationAttendance {
                 }
             });
         }
+
+        // Quick PIN for PC users
+        const btnPinQuick = document.getElementById('btn-submit-pin-quick');
+        const inputPinQuick = document.getElementById('terminal-pin-quick');
+        const pinFeedback = document.getElementById('pin-quick-feedback');
+
+        if (btnPinQuick && inputPinQuick) {
+            btnPinQuick.addEventListener('click', () => {
+                const pin = inputPinQuick.value.trim();
+                const action = btnPinQuick.getAttribute('data-action') || 'check-in';
+                if (!pin || pin.length < 4) {
+                    if (pinFeedback) {
+                        pinFeedback.style.display = 'block';
+                        pinFeedback.className = 'text-danger small mt-2 fw-semibold';
+                        pinFeedback.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Digite o PIN de 6 dígitos exibido no ecrã da recepção.';
+                    }
+                    return;
+                }
+
+                if (pinFeedback) {
+                    pinFeedback.style.display = 'none';
+                }
+
+                btnPinQuick.disabled = true;
+                const origHtml = btnPinQuick.innerHTML;
+                btnPinQuick.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> A validar...';
+
+                this.sendAttendancePayload(action, {
+                    qr_token: pin,
+                    device_uuid: this.deviceId
+                }, false, btnPinQuick, origHtml);
+            });
+
+            inputPinQuick.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    btnPinQuick.click();
+                }
+            });
+        }
     }
 
     /**
@@ -141,7 +181,7 @@ class GeolocationAttendance {
 
                 // Feedback em tempo real sobre a qualidade do sinal
                 if (accuracy > 100) {
-                    this.showFeedback('warning', `Aviso: Sinal GPS com baixa precisão (${roundedAcc}m). Se a marcação falhar, tente aproximar-se de uma janela ou utilize o QR Code do terminal da recepção.`);
+                    this.showFeedback('warning', `Aviso: Sinal GPS com baixa precisão (${roundedAcc}m). Em computadores (PC) ou locais fechados, utilize o campo <strong>"Está no Computador (PC)?"</strong> com o PIN de 6 dígitos exibido no monitor da receção.`);
                 }
 
                 this.sendAttendancePayload(actionType, {
@@ -157,13 +197,13 @@ class GeolocationAttendance {
                 let errorMsg = 'Erro ao obter localização GPS.';
                 switch (error.code) {
                     case error.PERMISSION_DENIED:
-                        errorMsg = 'Permissão de localização GPS recusada. Autorize o acesso ao GPS nas definições do navegador.';
+                        errorMsg = 'Permissão de GPS recusada no navegador. Se estiver no PC, utilize o campo <strong>"Está no Computador (PC)?"</strong> com o PIN de 6 dígitos.';
                         break;
                     case error.POSITION_UNAVAILABLE:
-                        errorMsg = 'Sinal GPS indisponível no momento. Certifique-se de que a localização do telemóvel está ligada.';
+                        errorMsg = 'Sinal GPS indisponível no dispositivo. Se estiver no PC, utilize o campo <strong>"Está no Computador (PC)?"</strong> com o PIN de 6 dígitos.';
                         break;
                     case error.TIMEOUT:
-                        errorMsg = 'Tempo limite esgotado ao calibrar GPS. Tente novamente ou use o QR Code do terminal.';
+                        errorMsg = 'Tempo limite esgotado ao calibrar GPS. Se estiver no PC, utilize o campo <strong>"Está no Computador (PC)?"</strong> com o PIN de 6 dígitos.';
                         break;
                 }
                 this.showFeedback('danger', errorMsg);

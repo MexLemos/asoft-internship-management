@@ -42,8 +42,10 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Tempo Estimado (Horas)</label>
-                            <input type="number" step="0.5" name="estimated_hours" class="form-control" value="4.0">
+                            <label class="form-label small fw-semibold">Prazo de Entrega (Data Limite)</label>
+                            <input type="date" name="due_date" class="form-control" value="<?= date('Y-m-d', strtotime('+7 days')) ?>">
+                            <input type="hidden" name="estimated_hours" value="4.0">
+                            <div class="form-text small text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Entregas após o prazo sofrem dedução automática de 30% na pontuação.</div>
                         </div>
 
                         <div class="col-12">

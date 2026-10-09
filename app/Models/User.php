@@ -140,8 +140,8 @@ class User
         $pdo->beginTransaction();
         try {
             $stmt = $pdo->prepare("
-                INSERT INTO users (name, email, phone, username, password_hash, status)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO users (name, email, phone, username, password_hash, must_change_password, status)
+                VALUES (?, ?, ?, ?, ?, 1, ?)
             ");
             $passwordHash = password_hash($data['password'], PASSWORD_BCRYPT);
             $stmt->execute([

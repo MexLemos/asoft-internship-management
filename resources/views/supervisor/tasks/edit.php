@@ -45,8 +45,10 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold">Tempo Estimado (Horas)</label>
-                            <input type="number" step="0.5" name="estimated_hours" class="form-control" value="<?= htmlspecialchars((string)$task['estimated_hours']) ?>">
+                            <label class="form-label small fw-semibold">Prazo de Entrega (Data Limite)</label>
+                            <input type="date" name="due_date" class="form-control" value="<?= htmlspecialchars((string)($task['due_date'] ?? '')) ?>">
+                            <input type="hidden" name="estimated_hours" value="<?= htmlspecialchars((string)($task['estimated_hours'] ?? '4.0')) ?>">
+                            <div class="form-text small text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Atraso: dedução de 30%.</div>
                         </div>
 
                         <div class="col-md-4">
