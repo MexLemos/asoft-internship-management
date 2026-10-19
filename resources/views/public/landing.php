@@ -6,15 +6,15 @@
                 <!-- Tag / Code Badge -->
                 <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary-subtle text-primary border border-primary-subtle small fw-semibold mb-3">
                     <i class="bi bi-code-slash"></i>
-                    <span>Programa Prático de Engenharia de Software</span>
+                    <span>Programa Prático de Estágio na área de TI</span>
                 </div>
-                
+
                 <h1 class="hero-title mb-3">
                     Conheça o Programa de Estágio da <span class="brand-accent">Asoftmedia</span>
                 </h1>
 
                 <p class="lead text-secondary mb-4 pe-lg-3" style="font-size: 1.15rem; line-height: 1.65;">
-                    Criado para preparar estudantes médios, universitários e candidatos singulares para os desafios reais da tecnologia em Angola, com código prático no GitHub, mentorias 1-on-1 e certificação digital com QR Code.
+                    Criado para preparar estudantes médios, universitários e candidatos singulares para os desafios reais da tecnologia, com practicidade e mentorias 1-on-1.
                 </p>
 
                 <!-- Action Buttons -->
@@ -59,17 +59,13 @@
 
                     <!-- Floating Badges inspired by Curso em Vídeo reference -->
                     <div class="floating-pill floating-pill-1">
-                        <span>🚀</span> Prática Real & Git
+                        <span></span> Prática Real
                     </div>
                     <div class="floating-pill floating-pill-2">
-                        <span>✨</span> Mentorias 1-on-1
+                        <span></span> Mentorias 1-on-1
                     </div>
-                    <div class="floating-pill floating-pill-3">
-                        <span>🏆</span> +100 Estagiários
-                    </div>
-                    <div class="floating-pill floating-pill-4">
-                        <span>📍</span> Luanda Tech HQ
-                    </div>
+                   
+                    
                 </div>
             </div>
         </div>
@@ -189,7 +185,7 @@
                     </div>
                     <h4 class="fw-bold text-dark mb-2">Institutos Médios Técnicos</h4>
                     <p class="text-muted small mb-4">
-                        Desenhado para estudantes da 13ª classe (ex: ITEL, IPIL, IMEL) que necessitam de estágio curricular obrigatório para obtenção de diploma.
+                        Desenhado para estudantes da 13ª classe que necessitam de estágio curricular obrigatório para obtenção de diploma.
                     </p>
 
                     <ul class="list-unstyled d-flex flex-column gap-2 small text-secondary mb-4 flex-grow-1">
@@ -227,7 +223,7 @@
                     </div>
                     <h4 class="fw-bold text-dark mb-2">Universidades & Faculdades</h4>
                     <p class="text-muted small mb-4">
-                        Para estudantes universitários (ISUTIC, UCAN, UAN, ISPTEC, etc.) em fase de conclusão de licenciatura ou estágio profissional.
+                        Para estudantes universitários em fase de conclusão de licenciatura ou estágio profissional.
                     </p>
 
                     <ul class="list-unstyled d-flex flex-column gap-2 small text-secondary mb-4 flex-grow-1">
@@ -277,7 +273,7 @@
                     <div class="icon-bubble bg-primary bg-opacity-10 text-primary">
                         <i class="bi bi-qr-code-scan"></i>
                     </div>
-                    <h5 class="fw-bold mb-2">Presença por QR & Geofence</h5>
+                    <h5 class="fw-bold mb-2">Presença por QR & Georreferência</h5>
                     <p class="text-muted small mb-0">
                         O terminal de recepção gera tokens dinâmicos renovados a cada 15 segundos. O ponto é batido com a câmara do telemóvel, eliminando fraudes.
                     </p>
