@@ -427,7 +427,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <span class="badge bg-primary px-3 py-2 rounded-pill mb-3">Junte-se à Comunidade Asoftmedia</span>
-                <h2 class="display-5 fw-bold mb-3">Pronto para Começar a Sua Jornada Prática de Engenharia?</h2>
+                <h2 class="display-5 fw-bold mb-3">Pronto para Começar o Seu Estágio Prático?</h2>
                 <p class="lead text-white-50 mb-4">
                     Quer seja um candidato singular em busca de desafios reais ou uma instituição interessada em formalizar parcerias de estágio para os seus alunos, estamos de portas abertas.
                 </p>
